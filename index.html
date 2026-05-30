@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>液体表面张力系数测量实验数据处理</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Physics Competition Lab Tool</p>
+        <h1>液体表面张力系数测量实验数据处理</h1>
+      </div>
+      <div class="topbar-actions">
+        <button id="loadSampleBtn" class="secondary">示例数据</button>
+        <button id="resetBtn" class="ghost">重置</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="panel parameters">
+        <section class="section">
+          <div class="section-heading">
+            <h2>实验模型</h2>
+          </div>
+          <div class="segmented" role="group" aria-label="实验模型">
+            <label>
+              <input type="radio" name="geometryType" value="frame" checked />
+              <span>门型金属框</span>
+            </label>
+            <label>
+              <input type="radio" name="geometryType" value="ring" />
+              <span>金属环</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-heading">
+            <h2>定标曲线</h2>
+          </div>
+          <div class="field-grid">
+            <label class="field">
+              <span>K <small>N/mV</small></span>
+              <input id="calibrationSlope" type="number" step="0.000001" value="0.00082" />
+            </label>
+            <label class="field">
+              <span>b <small>N</small></span>
+              <input id="calibrationIntercept" type="number" step="0.000001" value="0" />
+            </label>
+            <label class="field">
+              <span>u(K) <small>N/mV</small></span>
+              <input id="calibrationSlopeUncertainty" type="number" step="0.000001" value="0.00002" />
+            </label>
+            <label class="field">
+              <span>u(b) <small>N</small></span>
+              <input id="calibrationInterceptUncertainty" type="number" step="0.000001" value="0.00002" />
+            </label>
+          </div>
+        </section>
+
+        <section id="frameGeometrySection" class="section">
+          <div class="section-heading">
+            <h2>门型框参数</h2>
+          </div>
+          <div class="field-grid">
+            <label class="field">
+              <span>内宽 L <small>mm</small></span>
+              <input id="frameWidth" type="number" step="0.01" value="50.00" />
+            </label>
+            <label class="field">
+              <span>厚度 d <small>mm</small></span>
+              <input id="frameThickness" type="number" step="0.01" value="0.80" />
+            </label>
+            <label class="field">
+              <span>u(L) <small>mm</small></span>
+              <input id="frameWidthUncertainty" type="number" step="0.001" value="0.02" />
+            </label>
+            <label class="field">
+              <span>u(d) <small>mm</small></span>
+              <input id="frameThicknessUncertainty" type="number" step="0.001" value="0.01" />
+            </label>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-heading">
+            <h2>张力修正输入</h2>
+          </div>
+          <div class="field-grid">
+            <label class="field">
+              <span>Umax <small>mV</small></span>
+              <input id="maxVoltage" type="number" step="0.001" value="8.95" />
+            </label>
+            <label class="field">
+              <span>断后电压 <small>mV</small></span>
+              <input id="ruptureVoltage" type="number" step="0.001" value="-0.20" />
+            </label>
+            <label class="field">
+              <span>液膜高度 x <small>mm</small></span>
+              <input id="filmHeight" type="number" step="0.001" value="4.50" />
+            </label>
+            <label class="field">
+              <span>u(x) <small>mm</small></span>
+              <input id="filmHeightUncertainty" type="number" step="0.001" value="0.01" />
+            </label>
+            <label class="field">
+              <span>液体密度 ρ <small>kg/m³</small></span>
+              <input id="liquidDensity" type="number" step="0.1" value="1000.0" />
+            </label>
+            <label class="field">
+              <span>u(ρ) <small>kg/m³</small></span>
+              <input id="liquidDensityUncertainty" type="number" step="0.1" value="5.0" />
+            </label>
+          </div>
+        </section>
+
+        <section id="ringGeometrySection" class="section hidden">
+          <div class="section-heading">
+            <h2>金属环参数</h2>
+          </div>
+          <div class="field-grid">
+            <label class="field">
+              <span>内径 R <small>mm</small></span>
+              <input id="ringInnerDiameter" type="number" step="0.01" value="20.00" />
+            </label>
+            <label class="field">
+              <span>环厚 r <small>mm</small></span>
+              <input id="ringThickness" type="number" step="0.01" value="0.50" />
+            </label>
+            <label class="field">
+              <span>修正系数 c</span>
+              <input id="ringCorrection" type="number" step="0.001" value="1.000" />
+            </label>
+            <label class="field">
+              <span>u(R) <small>mm</small></span>
+              <input id="ringInnerDiameterUncertainty" type="number" step="0.001" value="0.02" />
+            </label>
+            <label class="field">
+              <span>u(r) <small>mm</small></span>
+              <input id="ringThicknessUncertainty" type="number" step="0.001" value="0.01" />
+            </label>
+            <label class="field">
+              <span>u(c)</span>
+              <input id="ringCorrectionUncertainty" type="number" step="0.001" value="0.005" />
+            </label>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-heading">
+            <h2>测量设置</h2>
+          </div>
+          <div class="field-grid">
+            <label class="field">
+              <span>温度 T <small>°C</small></span>
+              <input id="temperature" type="number" step="0.1" value="25.0" />
+            </label>
+            <label class="field">
+              <span>电压分辨率 <small>mV</small></span>
+              <input id="voltageResolution" type="number" step="0.001" value="0.01" />
+            </label>
+            <label class="field">
+              <span>位移分辨率 <small>mm</small></span>
+              <input id="displacementResolution" type="number" step="0.001" value="0.01" />
+            </label>
+            <label class="field">
+              <span>置信水平 p</span>
+              <input id="confidenceLevel" type="number" min="0.95" max="0.999" step="0.001" value="0.95" />
+            </label>
+          </div>
+          <label class="checkbox-row">
+            <input id="useFirstPointZero" type="checkbox" checked />
+            <span>使用第一行电压作为零点 U0</span>
+          </label>
+          <label class="field manual-zero">
+            <span>手动 U0 <small>mV</small></span>
+            <input id="manualZeroVoltage" type="number" step="0.001" value="0" disabled />
+          </label>
+        </section>
+      </aside>
+
+      <section class="panel data-panel">
+        <div class="section-heading">
+          <div>
+            <h2>原始数据</h2>
+            <p>手动输入位移和力传感器电压，用于曲线检查；最终计算使用左侧 Umax 与断后电压。</p>
+          </div>
+          <div class="inline-actions">
+            <button id="addRowBtn" class="secondary">添加一行</button>
+            <button id="addFiveRowsBtn" class="secondary">添加五行</button>
+            <button id="clearRowsBtn" class="ghost">清空</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>位移 x / mm</th>
+                <th>电压 U / mV</th>
+                <th>力 F / N</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="rawDataBody"></tbody>
+          </table>
+        </div>
+
+        <div class="chart-grid">
+          <section class="chart-panel">
+            <div class="chart-title">
+              <h3>电压-位移曲线</h3>
+              <span id="voltageChartMeta">--</span>
+            </div>
+            <div id="voltageChart" class="chart"></div>
+          </section>
+          <section class="chart-panel">
+            <div class="chart-title">
+              <h3>力-位移曲线</h3>
+              <span id="forceChartMeta">--</span>
+            </div>
+            <div id="forceChart" class="chart"></div>
+          </section>
+        </div>
+
+        <section class="section repeat-section">
+          <div class="section-heading">
+            <div>
+              <h2>重复测量结果</h2>
+              <p>可填入多次计算得到的 γ，留空时使用当前曲线结果。</p>
+            </div>
+          </div>
+          <textarea id="repeatValues" rows="3" placeholder="例如：0.0718, 0.0724, 0.0715"></textarea>
+        </section>
+      </section>
+
+      <aside class="panel results">
+        <section class="result-hero">
+          <span>最终结果</span>
+          <strong id="finalGamma">--</strong>
+          <p id="finalInterval">等待有效数据</p>
+        </section>
+
+        <section class="section result-list">
+          <div class="section-heading">
+            <h2>核心数据</h2>
+          </div>
+          <dl>
+            <div>
+              <dt>电压差张力 FΔU</dt>
+              <dd id="maxForce">--</dd>
+            </div>
+            <div>
+              <dt>液膜重力 G</dt>
+              <dd id="filmGravity">--</dd>
+            </div>
+            <div>
+              <dt>有效张力 F</dt>
+              <dd id="effectiveForce">--</dd>
+            </div>
+            <div>
+              <dt>当前 γ</dt>
+              <dd id="currentGamma">--</dd>
+            </div>
+            <div>
+              <dt>重复次数 n</dt>
+              <dd id="repeatCount">--</dd>
+            </div>
+            <div>
+              <dt>平均值 γ̄</dt>
+              <dd id="meanGamma">--</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="section result-list">
+          <div class="section-heading">
+            <h2>不确定度与置信度</h2>
+          </div>
+          <dl>
+            <div>
+              <dt>A 类 uA</dt>
+              <dd id="typeA">--</dd>
+            </div>
+            <div>
+              <dt>B 类 uB</dt>
+              <dd id="typeB">--</dd>
+            </div>
+            <div>
+              <dt>合成 uc</dt>
+              <dd id="combinedU">--</dd>
+            </div>
+            <div>
+              <dt>覆盖因子 k</dt>
+              <dd id="coverageFactor">--</dd>
+            </div>
+            <div>
+              <dt>扩展不确定度 U</dt>
+              <dd id="expandedU">--</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="section formula-box">
+          <div class="section-heading">
+            <h2>当前公式</h2>
+          </div>
+          <p id="formulaText">γ = [K(Umax - U断后) - ρLdxg] / 2L</p>
+          <p class="muted">不确定度采用 GUM 传播律，p 默认不低于 0.95。</p>
+        </section>
+      </aside>
+    </main>
+
+    <section class="report panel">
+      <div class="section-heading">
+        <div>
+          <h2>网页实验报告</h2>
+          <p>第一版报告随参数和数据实时更新，可直接用于检查处理流程。</p>
+        </div>
+      </div>
+      <div id="reportContent" class="report-content"></div>
+    </section>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

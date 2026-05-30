@@ -1,0 +1,5 @@
+cloudflared.exe
+cloudflared.log
+server.*.log
+first-version-*.png
+surface-tension-permanent-site.zip
