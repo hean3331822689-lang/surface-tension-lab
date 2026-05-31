@@ -1,19 +1,8 @@
-const STORAGE_KEY = "surface-tension-lab-v1";
+const STORAGE_KEY = "surface-tension-lab-v2";
 
 const sampleRows = [
-  { displacement: "0.0", voltage: "0.10" },
-  { displacement: "0.5", voltage: "0.52" },
-  { displacement: "1.0", voltage: "1.10" },
-  { displacement: "1.5", voltage: "2.05" },
-  { displacement: "2.0", voltage: "3.44" },
-  { displacement: "2.5", voltage: "5.10" },
-  { displacement: "3.0", voltage: "6.72" },
-  { displacement: "3.5", voltage: "7.95" },
-  { displacement: "4.0", voltage: "8.70" },
-  { displacement: "4.5", voltage: "8.95" },
-  { displacement: "5.0", voltage: "8.60" },
-  { displacement: "5.5", voltage: "7.40" },
-  { displacement: "6.0", voltage: "4.20" },
+  { displacement: "3.37", voltage: "1.56" },
+  { displacement: "3.37", voltage: "-0.06" },
 ];
 
 const blankRows = Array.from({ length: 8 }, () => ({
@@ -230,10 +219,10 @@ function calculateCurrentGamma(params, maxRow) {
       sensorForce,
       filmGravity,
       effectiveForce,
-      formula: "γ = [K(Umax - U断后) - ρLdxg] / 2L",
+      formula: "γ = [K(Umax - U断) - ρLdxg] / 2L",
       uncertaintyRows: [
         ["K", "力传感器定标斜率", `${formatNumber(params.calibrationSlopeUncertainty, 6)} N/mV`],
-        ["Umax - U断后", "峰值与断裂后负电压差", `${formatNumber(deltaVoltageUncertainty, 4)} mV`],
+        ["Umax - U断", "峰值与断裂后负电压差", `${formatNumber(deltaVoltageUncertainty, 4)} mV`],
         ["L", "门型框内宽", `${formatNumber(params.frameWidthUncertainty, 3)} mm`],
         ["d", "门型框厚度", `${formatNumber(params.frameThicknessUncertainty, 3)} mm`],
         ["x", "拉起液膜高度", `${formatNumber(params.filmHeightUncertainty, 3)} mm`],
@@ -684,8 +673,8 @@ function renderReport(params, maxRow, current, uncertainty) {
       <h3>关键计算</h3>
       <ul>
         <li>Umax = ${formatNumber(params.maxVoltage, 4)} mV</li>
-        <li>断后电压 = ${formatNumber(params.ruptureVoltage, 4)} mV</li>
-        <li>ΔU = Umax - U断后 = ${formatNumber(current.deltaVoltage, 4)} mV</li>
+        <li>U断 = ${formatNumber(params.ruptureVoltage, 4)} mV</li>
+        <li>ΔU = Umax - U断 = ${formatNumber(current.deltaVoltage, 4)} mV</li>
         <li>电压差张力 FΔU = ${formatForce(current.sensorForce)}</li>
         <li>液膜重力 G = ρLdxg = ${formatForce(current.filmGravity)}</li>
         <li>有效张力 F = FΔU - G = ${formatForce(current.effectiveForce)}</li>
@@ -792,23 +781,25 @@ function loadPersistedState() {
 
 function loadSample() {
   rows = structuredClone(sampleRows);
-  $("calibrationSlope").value = "0.00082";
+  $("calibrationSlope").value = "0.00318177";
   $("calibrationIntercept").value = "0";
-  $("calibrationSlopeUncertainty").value = "0.00002";
-  $("calibrationInterceptUncertainty").value = "0.00002";
-  $("frameWidth").value = "50.00";
-  $("frameThickness").value = "0.80";
+  $("calibrationSlopeUncertainty").value = "0.0000016";
+  $("calibrationInterceptUncertainty").value = "0.000010";
+  $("frameWidth").value = "39.00";
+  $("frameThickness").value = "0.14";
   $("frameWidthUncertainty").value = "0.02";
   $("frameThicknessUncertainty").value = "0.01";
-  $("maxVoltage").value = "8.95";
-  $("ruptureVoltage").value = "-0.20";
-  $("filmHeight").value = "4.50";
+  $("maxVoltage").value = "1.56";
+  $("ruptureVoltage").value = "-0.06";
+  $("filmHeight").value = "3.37";
   $("filmHeightUncertainty").value = "0.01";
   $("liquidDensity").value = "1000.0";
   $("liquidDensityUncertainty").value = "5.0";
   $("confidenceLevel").value = "0.95";
   $("useFirstPointZero").checked = true;
-  $("repeatValues").value = "0.0712, 0.0716, 0.0720, 0.0714, 0.0718";
+  $("ringInnerDiameter").value = "32.70";
+  $("ringThickness").value = "1.00";
+  $("repeatValues").value = "";
   document.querySelector('input[name="geometryType"][value="frame"]').checked = true;
   renderRows();
   calculateAndRender();
