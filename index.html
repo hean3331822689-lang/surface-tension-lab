@@ -43,7 +43,7 @@
           <div class="field-grid">
             <label class="field">
               <span>K <small>N/mV</small></span>
-              <input id="calibrationSlope" type="number" step="0.000001" value="0.00082" />
+              <input id="calibrationSlope" type="number" step="0.000001" value="0.00318177" />
             </label>
             <label class="field">
               <span>b <small>N</small></span>
@@ -51,11 +51,11 @@
             </label>
             <label class="field">
               <span>u(K) <small>N/mV</small></span>
-              <input id="calibrationSlopeUncertainty" type="number" step="0.000001" value="0.00002" />
+              <input id="calibrationSlopeUncertainty" type="number" step="0.000001" value="0.0000016" />
             </label>
             <label class="field">
               <span>u(b) <small>N</small></span>
-              <input id="calibrationInterceptUncertainty" type="number" step="0.000001" value="0.00002" />
+              <input id="calibrationInterceptUncertainty" type="number" step="0.000001" value="0.000010" />
             </label>
           </div>
         </section>
@@ -67,11 +67,11 @@
           <div class="field-grid">
             <label class="field">
               <span>内宽 L <small>mm</small></span>
-              <input id="frameWidth" type="number" step="0.01" value="50.00" />
+              <input id="frameWidth" type="number" step="0.01" value="39.00" />
             </label>
             <label class="field">
               <span>厚度 d <small>mm</small></span>
-              <input id="frameThickness" type="number" step="0.01" value="0.80" />
+              <input id="frameThickness" type="number" step="0.01" value="0.14" />
             </label>
             <label class="field">
               <span>u(L) <small>mm</small></span>
@@ -91,15 +91,15 @@
           <div class="field-grid">
             <label class="field">
               <span>Umax <small>mV</small></span>
-              <input id="maxVoltage" type="number" step="0.001" value="8.95" />
+              <input id="maxVoltage" type="number" step="0.001" value="1.56" />
             </label>
             <label class="field">
-              <span>断后电压 <small>mV</small></span>
-              <input id="ruptureVoltage" type="number" step="0.001" value="-0.20" />
+              <span>U断 <small>mV</small></span>
+              <input id="ruptureVoltage" type="number" step="0.001" value="-0.06" />
             </label>
             <label class="field">
               <span>液膜高度 x <small>mm</small></span>
-              <input id="filmHeight" type="number" step="0.001" value="4.50" />
+              <input id="filmHeight" type="number" step="0.001" value="3.37" />
             </label>
             <label class="field">
               <span>u(x) <small>mm</small></span>
@@ -123,11 +123,11 @@
           <div class="field-grid">
             <label class="field">
               <span>内径 R <small>mm</small></span>
-              <input id="ringInnerDiameter" type="number" step="0.01" value="20.00" />
+              <input id="ringInnerDiameter" type="number" step="0.01" value="32.70" />
             </label>
             <label class="field">
               <span>环厚 r <small>mm</small></span>
-              <input id="ringThickness" type="number" step="0.01" value="0.50" />
+              <input id="ringThickness" type="number" step="0.01" value="1.00" />
             </label>
             <label class="field">
               <span>修正系数 c</span>
@@ -185,7 +185,7 @@
         <div class="section-heading">
           <div>
             <h2>原始数据</h2>
-            <p>手动输入位移和力传感器电压，用于曲线检查；最终计算使用左侧 Umax 与断后电压。</p>
+            <p>手动输入位移和力传感器电压，用于曲线检查；最终计算使用左侧 Umax 与 U断。</p>
           </div>
           <div class="inline-actions">
             <button id="addRowBtn" class="secondary">添加一行</button>
@@ -308,7 +308,7 @@
           <div class="section-heading">
             <h2>当前公式</h2>
           </div>
-          <p id="formulaText">γ = [K(Umax - U断后) - ρLdxg] / 2L</p>
+          <p id="formulaText">γ = [K(Umax - U断) - ρLdxg] / 2L</p>
           <p class="muted">不确定度采用 GUM 传播律，p 默认不低于 0.95。</p>
         </section>
       </aside>
