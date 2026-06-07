@@ -38,7 +38,7 @@
 
         <section class="section">
           <div class="section-heading">
-            <h2>定标曲线</h2>
+            <h2>定标参数</h2>
           </div>
           <div class="field-grid">
             <label class="field">
@@ -98,11 +98,11 @@
               <input id="ruptureVoltage" type="number" step="0.001" value="-0.06" />
             </label>
             <label class="field">
-              <span>液膜高度 x <small>mm</small></span>
+              <span>最大位移 xmax <small>mm</small></span>
               <input id="filmHeight" type="number" step="0.001" value="3.37" />
             </label>
             <label class="field">
-              <span>u(x) <small>mm</small></span>
+              <span>u(xmax) <small>mm</small></span>
               <input id="filmHeightUncertainty" type="number" step="0.001" value="0.01" />
             </label>
             <label class="field">
@@ -170,67 +170,65 @@
               <input id="confidenceLevel" type="number" min="0.95" max="0.999" step="0.001" value="0.95" />
             </label>
           </div>
-          <label class="checkbox-row">
-            <input id="useFirstPointZero" type="checkbox" checked />
-            <span>使用第一行电压作为零点 U0</span>
-          </label>
-          <label class="field manual-zero">
-            <span>手动 U0 <small>mV</small></span>
-            <input id="manualZeroVoltage" type="number" step="0.001" value="0" disabled />
-          </label>
         </section>
       </aside>
 
       <section class="panel data-panel">
         <div class="section-heading">
           <div>
-            <h2>原始数据</h2>
-            <p>手动输入位移和力传感器电压，用于曲线检查；最终计算使用左侧 Umax 与 U断。</p>
-          </div>
-          <div class="inline-actions">
-            <button id="addRowBtn" class="secondary">添加一行</button>
-            <button id="addFiveRowsBtn" class="secondary">添加五行</button>
-            <button id="clearRowsBtn" class="ghost">清空</button>
+            <h2>实时计算结果</h2>
+            <p>不再使用过程数据和拟合曲线；当前结果只由 Umax、U断 和最大位移 xmax 计算。</p>
           </div>
         </div>
 
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>位移 x / mm</th>
-                <th>电压 U / mV</th>
-                <th>力 F / N</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="rawDataBody"></tbody>
-          </table>
+        <section class="calculation-hero">
+          <span>当前表面张力系数 γ</span>
+          <strong id="centerGamma">--</strong>
+          <p id="centerInterval">等待有效数据</p>
+        </section>
+
+        <div class="calculation-grid">
+          <div>
+            <span>ΔU = Umax - U断</span>
+            <strong id="centerDeltaVoltage">--</strong>
+          </div>
+          <div>
+            <span>电压差张力 FΔU</span>
+            <strong id="centerSensorForce">--</strong>
+          </div>
+          <div>
+            <span>液膜重力 G</span>
+            <strong id="centerFilmGravity">--</strong>
+          </div>
+          <div>
+            <span>有效张力 F</span>
+            <strong id="centerEffectiveForce">--</strong>
+          </div>
+          <div>
+            <span>分母</span>
+            <strong id="centerDenominator">--</strong>
+          </div>
+          <div>
+            <span>扩展不确定度 U</span>
+            <strong id="centerExpandedU">--</strong>
+          </div>
         </div>
 
-        <div class="chart-grid">
-          <section class="chart-panel">
-            <div class="chart-title">
-              <h3>电压-位移曲线</h3>
-              <span id="voltageChartMeta">--</span>
+        <section class="calculation-steps">
+          <div class="section-heading">
+            <div>
+              <h2>计算展开</h2>
+              <p id="centerFormula">--</p>
             </div>
-            <div id="voltageChart" class="chart"></div>
-          </section>
-          <section class="chart-panel">
-            <div class="chart-title">
-              <h3>力-位移曲线</h3>
-              <span id="forceChartMeta">--</span>
-            </div>
-            <div id="forceChart" class="chart"></div>
-          </section>
-        </div>
+          </div>
+          <ol id="calculationSteps"></ol>
+        </section>
 
         <section class="section repeat-section">
           <div class="section-heading">
             <div>
               <h2>重复测量结果</h2>
-              <p>可填入多次计算得到的 γ，留空时使用当前曲线结果。</p>
+              <p>可填入多次独立测量得到的 γ；留空时使用当前单次计算结果。</p>
             </div>
           </div>
           <textarea id="repeatValues" rows="3" placeholder="例如：0.0718, 0.0724, 0.0715"></textarea>
@@ -308,7 +306,7 @@
           <div class="section-heading">
             <h2>当前公式</h2>
           </div>
-          <p id="formulaText">γ = [K(Umax - U断) - ρLdxg] / 2L</p>
+          <p id="formulaText">γ = [K(Umax - U断) - ρLdxmaxg] / 2L</p>
           <p class="muted">不确定度采用 GUM 传播律，p 默认不低于 0.95。</p>
         </section>
       </aside>

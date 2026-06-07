@@ -287,6 +287,99 @@ textarea:focus,
   padding: 18px;
 }
 
+.calculation-hero {
+  padding: 22px;
+  border: 1px solid #b7d3ff;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #f3f8ff, #ffffff);
+}
+
+.calculation-hero span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.calculation-hero strong {
+  display: block;
+  color: var(--primary-dark);
+  font-size: clamp(28px, 3vw, 42px);
+  line-height: 1.15;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.calculation-hero p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.calculation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  margin-top: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.calculation-grid div {
+  min-width: 0;
+  padding: 16px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.calculation-grid div:nth-child(3n) {
+  border-right: 0;
+}
+
+.calculation-grid div:nth-last-child(-n + 3) {
+  border-bottom: 0;
+}
+
+.calculation-grid span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.calculation-grid strong {
+  display: block;
+  color: var(--primary-dark);
+  font-size: 18px;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+}
+
+.calculation-steps {
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.calculation-steps ol {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 22px;
+}
+
+.calculation-steps li {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.55;
+  font-variant-numeric: tabular-nums;
+}
+
 .table-wrap {
   overflow-x: auto;
   border: 1px solid var(--line);
@@ -607,8 +700,20 @@ textarea {
   }
 
   .chart-grid,
+  .calculation-grid,
   .report-content {
     grid-template-columns: 1fr;
+  }
+
+  .calculation-grid div,
+  .calculation-grid div:nth-child(3n),
+  .calculation-grid div:nth-last-child(-n + 3) {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .calculation-grid div:last-child {
+    border-bottom: 0;
   }
 
   .report-block.wide {
