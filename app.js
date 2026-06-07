@@ -1,55 +1,41 @@
-const STORAGE_KEY = "surface-tension-lab-v2";
+const STORAGE_KEY = "surface-tension-lab-v3";
 
-const sampleRows = [
-  { displacement: "3.37", voltage: "1.56" },
-  { displacement: "3.37", voltage: "-0.06" },
-];
+const sampleValues = {
+  calibrationSlope: "0.00318177",
+  calibrationIntercept: "0",
+  calibrationSlopeUncertainty: "0.0000016",
+  calibrationInterceptUncertainty: "0.000010",
+  frameWidth: "39.00",
+  frameThickness: "0.14",
+  frameWidthUncertainty: "0.02",
+  frameThicknessUncertainty: "0.01",
+  maxVoltage: "1.56",
+  ruptureVoltage: "-0.06",
+  filmHeight: "3.37",
+  filmHeightUncertainty: "0.01",
+  liquidDensity: "1000.0",
+  liquidDensityUncertainty: "5.0",
+  ringInnerDiameter: "32.70",
+  ringThickness: "1.00",
+  ringCorrection: "1.000",
+  ringInnerDiameterUncertainty: "0.02",
+  ringThicknessUncertainty: "0.01",
+  ringCorrectionUncertainty: "0.005",
+  temperature: "25.0",
+  voltageResolution: "0.01",
+  displacementResolution: "0.01",
+  confidenceLevel: "0.95",
+};
 
-const blankRows = Array.from({ length: 8 }, () => ({
-  displacement: "",
-  voltage: "",
-}));
-
-const paramIds = [
-  "calibrationSlope",
-  "calibrationIntercept",
-  "calibrationSlopeUncertainty",
-  "calibrationInterceptUncertainty",
-  "frameWidth",
-  "frameThickness",
-  "frameWidthUncertainty",
-  "frameThicknessUncertainty",
-  "maxVoltage",
-  "ruptureVoltage",
-  "filmHeight",
-  "filmHeightUncertainty",
-  "liquidDensity",
-  "liquidDensityUncertainty",
-  "ringInnerDiameter",
-  "ringThickness",
-  "ringCorrection",
-  "ringInnerDiameterUncertainty",
-  "ringThicknessUncertainty",
-  "ringCorrectionUncertainty",
-  "temperature",
-  "voltageResolution",
-  "displacementResolution",
-  "confidenceLevel",
-  "manualZeroVoltage",
-];
-
-let rows = structuredClone(sampleRows);
+const paramIds = Object.keys(sampleValues);
 
 const $ = (id) => document.getElementById(id);
 
 function numberFromInput(id, fallback = 0) {
-  const value = Number($(id).value);
+  const element = $(id);
+  if (!element) return fallback;
+  const value = Number(element.value);
   return Number.isFinite(value) ? value : fallback;
-}
-
-function parseMaybeNumber(value) {
-  const parsed = Number(String(value).trim());
-  return Number.isFinite(parsed) ? parsed : NaN;
 }
 
 function clamp(value, min, max) {
@@ -76,6 +62,11 @@ function formatNumber(value, digits = 4) {
   return value.toFixed(digits);
 }
 
+function formatVoltage(value) {
+  if (!Number.isFinite(value)) return "--";
+  return `${formatNumber(value, 4)} mV`;
+}
+
 function formatForce(value) {
   if (!Number.isFinite(value)) return "--";
   return `${formatNumber(value * 1000, 3)} mN`;
@@ -84,6 +75,11 @@ function formatForce(value) {
 function formatGamma(value) {
   if (!Number.isFinite(value)) return "--";
   return `${formatNumber(value * 1000, 3)} mN/m`;
+}
+
+function formatLength(value) {
+  if (!Number.isFinite(value)) return "--";
+  return `${formatNumber(value * 1000, 3)} mm`;
 }
 
 function formatInterval(mean, expanded) {
@@ -123,91 +119,71 @@ function getParams() {
     voltageResolution: Math.abs(numberFromInput("voltageResolution")),
     displacementResolution: Math.abs(numberFromInput("displacementResolution")),
     confidenceLevel: clamp(pInput, 0.95, 0.999),
-    useFirstPointZero: $("useFirstPointZero").checked,
-    manualZeroVoltage: numberFromInput("manualZeroVoltage"),
   };
 }
 
-function getZeroVoltage(params, rawRows) {
-  if (!params.useFirstPointZero) return params.manualZeroVoltage;
-  const firstValid = rawRows.find((row) => Number.isFinite(row.voltage));
-  return firstValid ? firstValid.voltage : NaN;
+function calculateVoltageForce(params) {
+  const deltaVoltage = params.maxVoltage - params.ruptureVoltage;
+  const sensorForce = params.calibrationSlope * deltaVoltage;
+  const voltageStandard = params.voltageResolution / (2 * Math.sqrt(3));
+  const deltaVoltageUncertainty = Math.sqrt(2) * voltageStandard;
+  const forceUncertainty = safeSqrt(
+    square(deltaVoltage * params.calibrationSlopeUncertainty) +
+      square(params.calibrationSlope * deltaVoltageUncertainty),
+  );
+
+  return {
+    deltaVoltage,
+    deltaVoltageUncertainty,
+    sensorForce,
+    forceUncertainty,
+  };
 }
 
-function getComputedRows(params) {
-  const rawRows = rows.map((row, index) => ({
-    rowIndex: index,
-    displacement: parseMaybeNumber(row.displacement),
-    voltage: parseMaybeNumber(row.voltage),
-  }));
-  const zeroVoltage = getZeroVoltage(params, rawRows);
-  return rawRows.map((row) => {
-    const deltaVoltage = row.voltage - zeroVoltage;
-    const force =
-      Number.isFinite(deltaVoltage) && Number.isFinite(params.calibrationSlope)
-        ? params.calibrationSlope * deltaVoltage + params.calibrationIntercept
-        : NaN;
-    return {
-      ...row,
-      zeroVoltage,
-      deltaVoltage,
-      force,
-    };
-  });
-}
+function calculateCurrentGamma(params) {
+  const voltageForce = calculateVoltageForce(params);
+  const { deltaVoltage, deltaVoltageUncertainty, sensorForce, forceUncertainty } = voltageForce;
 
-function getMaxForceRow(computedRows) {
-  const valid = computedRows.filter((row) => Number.isFinite(row.force));
-  if (!valid.length) return null;
-  return valid.reduce((best, row) => (row.force > best.force ? row : best), valid[0]);
-}
+  if (
+    !Number.isFinite(deltaVoltage) ||
+    !Number.isFinite(sensorForce) ||
+    !Number.isFinite(forceUncertainty)
+  ) {
+    return invalidCalculation();
+  }
 
-function calculateCurrentGamma(params, maxRow) {
   if (params.geometryType === "frame") {
     const length = mmToM(params.frameWidth);
     const thickness = mmToM(params.frameThickness);
-    const filmHeight = mmToM(params.filmHeight);
+    const maxDisplacement = mmToM(params.filmHeight);
     const uLength = mmToM(params.frameWidthUncertainty);
     const uThickness = mmToM(params.frameThicknessUncertainty);
-    const uFilmHeight = mmToM(params.filmHeightUncertainty);
+    const uMaxDisplacement = mmToM(params.filmHeightUncertainty);
     const density = params.liquidDensity;
     const uDensity = params.liquidDensityUncertainty;
     const gravityAcceleration = 9.80665;
-    const deltaVoltage = params.maxVoltage - params.ruptureVoltage;
-    const sensorForce = params.calibrationSlope * deltaVoltage;
-    const filmGravity = density * length * thickness * filmHeight * gravityAcceleration;
+    const filmGravity = density * length * thickness * maxDisplacement * gravityAcceleration;
     const effectiveForce = sensorForce - filmGravity;
     const denominator = 2 * length;
 
-    if (
-      denominator <= 0 ||
-      !Number.isFinite(deltaVoltage) ||
-      !Number.isFinite(sensorForce) ||
-      !Number.isFinite(filmGravity)
-    ) {
+    if (denominator <= 0 || !Number.isFinite(filmGravity)) {
       return invalidCalculation();
     }
 
     const gamma = effectiveForce / denominator;
-    const voltageStandard = params.voltageResolution / (2 * Math.sqrt(3));
-    const deltaVoltageUncertainty = Math.sqrt(2) * voltageStandard;
     const dGammaDK = deltaVoltage / denominator;
     const dGammaDDeltaU = params.calibrationSlope / denominator;
     const dGammaDLength = -sensorForce / (2 * square(length));
-    const dGammaDThickness = (-density * filmHeight * gravityAcceleration) / 2;
-    const dGammaDHeight = (-density * thickness * gravityAcceleration) / 2;
-    const dGammaDDensity = (-thickness * filmHeight * gravityAcceleration) / 2;
+    const dGammaDThickness = (-density * maxDisplacement * gravityAcceleration) / 2;
+    const dGammaDDisplacement = (-density * thickness * gravityAcceleration) / 2;
+    const dGammaDDensity = (-thickness * maxDisplacement * gravityAcceleration) / 2;
     const typeB = safeSqrt(
       square(dGammaDK * params.calibrationSlopeUncertainty) +
         square(dGammaDDeltaU * deltaVoltageUncertainty) +
         square(dGammaDLength * uLength) +
         square(dGammaDThickness * uThickness) +
-        square(dGammaDHeight * uFilmHeight) +
+        square(dGammaDDisplacement * uMaxDisplacement) +
         square(dGammaDDensity * uDensity),
-    );
-    const forceUncertainty = safeSqrt(
-      square(deltaVoltage * params.calibrationSlopeUncertainty) +
-        square(params.calibrationSlope * deltaVoltageUncertainty),
     );
 
     return {
@@ -219,29 +195,24 @@ function calculateCurrentGamma(params, maxRow) {
       sensorForce,
       filmGravity,
       effectiveForce,
-      formula: "γ = [K(Umax - U断) - ρLdxg] / 2L",
+      formula: "γ = [K(Umax - U断) - ρLdxmaxg] / 2L",
+      steps: [
+        `ΔU = Umax - U断 = ${formatVoltage(deltaVoltage)}`,
+        `FΔU = KΔU = ${formatForce(sensorForce)}`,
+        `G = ρLdxmaxg = ${formatForce(filmGravity)}`,
+        `F = FΔU - G = ${formatForce(effectiveForce)}`,
+        `γ = F / 2L = ${formatGamma(gamma)}`,
+      ],
       uncertaintyRows: [
         ["K", "力传感器定标斜率", `${formatNumber(params.calibrationSlopeUncertainty, 6)} N/mV`],
-        ["Umax - U断", "峰值与断裂后负电压差", `${formatNumber(deltaVoltageUncertainty, 4)} mV`],
+        ["Umax - U断", "峰值与拉脱后稳定电压差", `${formatNumber(deltaVoltageUncertainty, 4)} mV`],
         ["L", "门型框内宽", `${formatNumber(params.frameWidthUncertainty, 3)} mm`],
         ["d", "门型框厚度", `${formatNumber(params.frameThicknessUncertainty, 3)} mm`],
-        ["x", "拉起液膜高度", `${formatNumber(params.filmHeightUncertainty, 3)} mm`],
+        ["xmax", "最大位移", `${formatNumber(params.filmHeightUncertainty, 3)} mm`],
         ["ρ", "液体密度", `${formatNumber(params.liquidDensityUncertainty, 2)} kg/m³`],
       ],
     };
   }
-
-  if (!maxRow || !Number.isFinite(maxRow.force)) return invalidCalculation();
-
-  const force = maxRow.force;
-  const deltaVoltage = maxRow.deltaVoltage;
-  const voltageStandard = params.voltageResolution / (2 * Math.sqrt(3));
-  const deltaVoltageUncertainty = Math.sqrt(2) * voltageStandard;
-  const forceUncertainty = safeSqrt(
-    square(deltaVoltage * params.calibrationSlopeUncertainty) +
-      square(params.calibrationSlope * deltaVoltageUncertainty) +
-      square(params.calibrationInterceptUncertainty),
-  );
 
   const innerDiameter = mmToM(params.ringInnerDiameter);
   const ringThickness = mmToM(params.ringThickness);
@@ -252,10 +223,11 @@ function calculateCurrentGamma(params, maxRow) {
 
   if (denominator <= 0) return invalidCalculation();
 
-  const gamma = (correction * force) / denominator;
+  const effectiveForce = sensorForce;
+  const gamma = (correction * effectiveForce) / denominator;
   const cForce = correction / denominator;
-  const cCorrection = force / denominator;
-  const cDiameter = (-correction * force * 2 * Math.PI) / square(denominator);
+  const cCorrection = effectiveForce / denominator;
+  const cDiameter = (-correction * effectiveForce * 2 * Math.PI) / square(denominator);
   const cThickness = cDiameter;
   const typeB = safeSqrt(
     square(cForce * forceUncertainty) +
@@ -269,9 +241,20 @@ function calculateCurrentGamma(params, maxRow) {
     typeB,
     forceUncertainty,
     denominator,
-    formula: "γ = cFmax / [2π(R + r)]",
+    deltaVoltage,
+    sensorForce,
+    filmGravity: NaN,
+    effectiveForce,
+    formula: "γ = cK(Umax - U断) / [2π(R + r)]",
+    steps: [
+      `ΔU = Umax - U断 = ${formatVoltage(deltaVoltage)}`,
+      `FΔU = KΔU = ${formatForce(sensorForce)}`,
+      `2π(R + r) = ${formatLength(denominator)}`,
+      `γ = cFΔU / [2π(R + r)] = ${formatGamma(gamma)}`,
+    ],
     uncertaintyRows: [
-      ["Fmax", "力传感器与电压读数", formatForce(forceUncertainty)],
+      ["K", "力传感器定标斜率", `${formatNumber(params.calibrationSlopeUncertainty, 6)} N/mV`],
+      ["Umax - U断", "峰值与拉脱后稳定电压差", `${formatNumber(deltaVoltageUncertainty, 4)} mV`],
       ["R", "金属环内径", `${formatNumber(params.ringInnerDiameterUncertainty, 3)} mm`],
       ["r", "金属环厚度", `${formatNumber(params.ringThicknessUncertainty, 3)} mm`],
       ["c", "金属环修正系数", formatNumber(params.ringCorrectionUncertainty, 4)],
@@ -290,6 +273,7 @@ function invalidCalculation() {
     filmGravity: NaN,
     effectiveForce: NaN,
     formula: "--",
+    steps: [],
     uncertaintyRows: [],
   };
 }
@@ -429,69 +413,16 @@ function calculateUncertainty(params, current) {
   };
 }
 
-function renderRows() {
-  const body = $("rawDataBody");
-  body.innerHTML = rows
-    .map(
-      (row, index) => `
-        <tr data-row="${index}">
-          <td>${index + 1}</td>
-          <td>
-            <input type="number" step="0.001" value="${row.displacement}" data-field="displacement" data-index="${index}" aria-label="第${index + 1}行位移" />
-          </td>
-          <td>
-            <input type="number" step="0.001" value="${row.voltage}" data-field="voltage" data-index="${index}" aria-label="第${index + 1}行电压" />
-          </td>
-          <td class="force-cell" id="forceCell-${index}">--</td>
-          <td><button class="row-delete" data-delete="${index}" aria-label="删除第${index + 1}行">×</button></td>
-        </tr>
-      `,
-    )
-    .join("");
-
-  body.querySelectorAll("input").forEach((input) => {
-    input.addEventListener("input", (event) => {
-      const target = event.target;
-      rows[Number(target.dataset.index)][target.dataset.field] = target.value;
-      calculateAndRender();
-      persistState();
-    });
-  });
-
-  body.querySelectorAll("[data-delete]").forEach((button) => {
-    button.addEventListener("click", () => {
-      rows.splice(Number(button.dataset.delete), 1);
-      if (!rows.length) rows.push({ displacement: "", voltage: "" });
-      renderRows();
-      calculateAndRender();
-      persistState();
-    });
-  });
-}
-
-function renderForceCells(computedRows, maxRow) {
-  computedRows.forEach((row) => {
-    const cell = $(`forceCell-${row.rowIndex}`);
-    const tableRow = document.querySelector(`tr[data-row="${row.rowIndex}"]`);
-    if (cell) cell.textContent = formatForce(row.force);
-    if (tableRow) tableRow.classList.toggle("max-row", maxRow?.rowIndex === row.rowIndex);
-  });
-}
-
 function renderModelVisibility() {
   const isFrame = getGeometryType() === "frame";
   $("frameGeometrySection").classList.toggle("hidden", !isFrame);
   $("ringGeometrySection").classList.toggle("hidden", isFrame);
-  $("manualZeroVoltage").disabled = $("useFirstPointZero").checked;
 }
 
-function updateResultText(params, maxRow, current, uncertainty) {
-  const displayedSensorForce =
-    params.geometryType === "frame" ? current.sensorForce : maxRow?.force;
-  $("maxForce").textContent = formatForce(displayedSensorForce);
+function updateResultText(params, current, uncertainty) {
+  $("maxForce").textContent = formatForce(current.sensorForce);
   $("filmGravity").textContent = params.geometryType === "frame" ? formatForce(current.filmGravity) : "--";
-  $("effectiveForce").textContent =
-    params.geometryType === "frame" ? formatForce(current.effectiveForce) : formatForce(maxRow?.force);
+  $("effectiveForce").textContent = formatForce(current.effectiveForce);
   $("currentGamma").textContent = formatGamma(current.gamma);
   $("repeatCount").textContent = uncertainty.repeatValues.length
     ? String(uncertainty.repeatValues.length)
@@ -520,122 +451,33 @@ function updateResultText(params, maxRow, current, uncertainty) {
   }
 }
 
-function renderCharts(computedRows, maxRow) {
-  const chartRows = computedRows.filter((row) => Number.isFinite(row.displacement));
-  $("voltageChartMeta").textContent = `${chartRows.length} 个有效位移点`;
-  $("forceChartMeta").textContent = maxRow ? `Fmax 行：${maxRow.rowIndex + 1}` : "--";
-
-  drawLineChart($("voltageChart"), chartRows, {
-    yKey: "voltage",
-    yLabel: "U / mV",
-    highlightRowIndex: maxRow?.rowIndex,
-  });
-  drawLineChart($("forceChart"), chartRows, {
-    yKey: "force",
-    yLabel: "F / N",
-    highlightRowIndex: maxRow?.rowIndex,
-  });
+function renderCenterResults(params, current, uncertainty) {
+  $("centerGamma").textContent = formatGamma(current.gamma);
+  $("centerInterval").textContent =
+    Number.isFinite(uncertainty.average) && Number.isFinite(uncertainty.expanded)
+      ? `置信区间：${formatInterval(uncertainty.average, uncertainty.expanded)}`
+      : "等待有效数据";
+  $("centerDeltaVoltage").textContent = formatVoltage(current.deltaVoltage);
+  $("centerSensorForce").textContent = formatForce(current.sensorForce);
+  $("centerFilmGravity").textContent =
+    params.geometryType === "frame" ? formatForce(current.filmGravity) : "--";
+  $("centerEffectiveForce").textContent = formatForce(current.effectiveForce);
+  $("centerDenominator").textContent = formatLength(current.denominator);
+  $("centerExpandedU").textContent = formatGamma(uncertainty.expanded);
+  $("centerFormula").textContent = current.formula;
+  $("calculationSteps").innerHTML = current.steps.length
+    ? current.steps.map((step) => `<li>${step}</li>`).join("")
+    : "<li>等待有效数据</li>";
 }
 
-function drawLineChart(container, data, options) {
-  const width = 520;
-  const height = 260;
-  const padding = { top: 18, right: 18, bottom: 34, left: 52 };
-  const valid = data.filter(
-    (row) => Number.isFinite(row.displacement) && Number.isFinite(row[options.yKey]),
-  );
-
-  if (valid.length < 2) {
-    container.innerHTML = `
-      <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${options.yLabel}曲线">
-        <text x="${width / 2}" y="${height / 2}" text-anchor="middle">请输入至少两个有效数据点</text>
-      </svg>
-    `;
-    return;
-  }
-
-  let xMin = Math.min(...valid.map((row) => row.displacement));
-  let xMax = Math.max(...valid.map((row) => row.displacement));
-  let yMin = Math.min(...valid.map((row) => row[options.yKey]));
-  let yMax = Math.max(...valid.map((row) => row[options.yKey]));
-
-  if (xMin === xMax) {
-    xMin -= 1;
-    xMax += 1;
-  }
-  if (yMin === yMax) {
-    yMin -= 1;
-    yMax += 1;
-  }
-
-  const yPadding = (yMax - yMin) * 0.08;
-  yMin -= yPadding;
-  yMax += yPadding;
-
-  const xScale = (value) =>
-    padding.left +
-    ((value - xMin) / (xMax - xMin)) * (width - padding.left - padding.right);
-  const yScale = (value) =>
-    height -
-    padding.bottom -
-    ((value - yMin) / (yMax - yMin)) * (height - padding.top - padding.bottom);
-
-  const gridLines = Array.from({ length: 5 }, (_, index) => {
-    const ratio = index / 4;
-    const y = padding.top + ratio * (height - padding.top - padding.bottom);
-    const value = yMax - ratio * (yMax - yMin);
-    return `
-      <line class="grid" x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" />
-      <text x="${padding.left - 8}" y="${y + 4}" text-anchor="end">${formatNumber(value, 3)}</text>
-    `;
-  }).join("");
-
-  const points = valid.map((row) => `${xScale(row.displacement)},${yScale(row[options.yKey])}`).join(" ");
-  const circles = valid
-    .map((row) => {
-      const className = row.rowIndex === options.highlightRowIndex ? "highlight" : "point";
-      const radius = row.rowIndex === options.highlightRowIndex ? 5 : 3.5;
-      return `<circle class="${className}" cx="${xScale(row.displacement)}" cy="${yScale(
-        row[options.yKey],
-      )}" r="${radius}" />`;
-    })
-    .join("");
-
-  container.innerHTML = `
-    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${options.yLabel}曲线">
-      ${gridLines}
-      <line class="axis" x1="${padding.left}" y1="${height - padding.bottom}" x2="${
-        width - padding.right
-      }" y2="${height - padding.bottom}" />
-      <line class="axis" x1="${padding.left}" y1="${padding.top}" x2="${padding.left}" y2="${
-        height - padding.bottom
-      }" />
-      <polyline class="line" points="${points}" />
-      ${circles}
-      <text x="${width / 2}" y="${height - 8}" text-anchor="middle">x / mm</text>
-      <text x="16" y="${height / 2}" transform="rotate(-90 16 ${height / 2})" text-anchor="middle">${
-        options.yLabel
-      }</text>
-      <text x="${padding.left}" y="${height - padding.bottom + 20}" text-anchor="middle">${formatNumber(
-        xMin,
-        2,
-      )}</text>
-      <text x="${width - padding.right}" y="${height - padding.bottom + 20}" text-anchor="middle">${formatNumber(
-        xMax,
-        2,
-      )}</text>
-    </svg>
-  `;
-}
-
-function renderReport(params, maxRow, current, uncertainty) {
+function renderReport(params, current, uncertainty) {
   const modelName = params.geometryType === "frame" ? "门型金属框" : "金属环";
   const geometryRows =
     params.geometryType === "frame"
       ? `
         <tr><td>L</td><td>${formatNumber(params.frameWidth, 3)} mm</td></tr>
         <tr><td>d</td><td>${formatNumber(params.frameThickness, 3)} mm</td></tr>
-        <tr><td>x</td><td>${formatNumber(params.filmHeight, 3)} mm</td></tr>
+        <tr><td>xmax</td><td>${formatNumber(params.filmHeight, 3)} mm</td></tr>
         <tr><td>ρ</td><td>${formatNumber(params.liquidDensity, 2)} kg/m³</td></tr>
       `
       : `
@@ -656,6 +498,8 @@ function renderReport(params, maxRow, current, uncertainty) {
     )
     .join("");
 
+  const stepRows = current.steps.map((step) => `<li>${step}</li>`).join("");
+
   $("reportContent").innerHTML = `
     <article class="report-block">
       <h3>实验参数</h3>
@@ -670,16 +514,12 @@ function renderReport(params, maxRow, current, uncertainty) {
       </table>
     </article>
     <article class="report-block">
-      <h3>关键计算</h3>
+      <h3>直接读数</h3>
       <ul>
         <li>Umax = ${formatNumber(params.maxVoltage, 4)} mV</li>
         <li>U断 = ${formatNumber(params.ruptureVoltage, 4)} mV</li>
-        <li>ΔU = Umax - U断 = ${formatNumber(current.deltaVoltage, 4)} mV</li>
-        <li>电压差张力 FΔU = ${formatForce(current.sensorForce)}</li>
-        <li>液膜重力 G = ρLdxg = ${formatForce(current.filmGravity)}</li>
-        <li>有效张力 F = FΔU - G = ${formatForce(current.effectiveForce)}</li>
-        <li>当前计算公式：${current.formula}</li>
-        <li>当前曲线 γ = ${formatGamma(current.gamma)}</li>
+        <li>ΔU = ${formatVoltage(current.deltaVoltage)}</li>
+        <li>最大位移 xmax = ${formatNumber(params.filmHeight, 3)} mm</li>
       </ul>
     </article>
     <article class="report-block">
@@ -701,6 +541,12 @@ function renderReport(params, maxRow, current, uncertainty) {
       </ul>
     </article>
     <article class="report-block wide">
+      <h3>计算展开</h3>
+      <ul>
+        ${stepRows || "<li>暂无有效计算</li>"}
+      </ul>
+    </article>
+    <article class="report-block wide">
       <h3>不确定度分量</h3>
       <table class="mini-table">
         <thead>
@@ -715,7 +561,7 @@ function renderReport(params, maxRow, current, uncertainty) {
       <h3>实验结论</h3>
       <p>
         在 ${formatNumber(params.temperature, 1)} °C 条件下，采用 ${modelName} 模型处理数据。
-        按 GUM 不确定度传播律计算，最终结果为
+        本页不使用过程曲线拟合，仅根据 Umax、U断 和最大位移等直接读数计算，最终结果为
         <strong>${formatGamma(uncertainty.average)} ± ${formatGamma(uncertainty.expanded)}</strong>，
         置信水平 p = ${formatNumber(params.confidenceLevel, 3)}。
       </p>
@@ -726,15 +572,12 @@ function renderReport(params, maxRow, current, uncertainty) {
 function calculateAndRender() {
   renderModelVisibility();
   const params = getParams();
-  const computedRows = getComputedRows(params);
-  const maxRow = getMaxForceRow(computedRows);
-  const current = calculateCurrentGamma(params, maxRow);
+  const current = calculateCurrentGamma(params);
   const uncertainty = calculateUncertainty(params, current);
 
-  renderForceCells(computedRows, maxRow);
-  renderCharts(computedRows, maxRow);
-  updateResultText(params, maxRow, current, uncertainty);
-  renderReport(params, maxRow, current, uncertainty);
+  updateResultText(params, current, uncertainty);
+  renderCenterResults(params, current, uncertainty);
+  renderReport(params, current, uncertainty);
 }
 
 function persistState() {
@@ -743,33 +586,29 @@ function persistState() {
     params[id] = $(id).value;
   });
   const payload = {
-    rows,
     params,
     geometryType: getGeometryType(),
-    useFirstPointZero: $("useFirstPointZero").checked,
     repeatValues: $("repeatValues").value,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+
+function setInputValues(values) {
+  paramIds.forEach((id) => {
+    if (values[id] !== undefined) $(id).value = values[id];
+  });
 }
 
 function loadPersistedState() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!saved) return;
-    if (Array.isArray(saved.rows)) rows = saved.rows;
-    if (saved.params) {
-      paramIds.forEach((id) => {
-        if (saved.params[id] !== undefined) $(id).value = saved.params[id];
-      });
-    }
+    if (saved.params) setInputValues(saved.params);
     if (saved.geometryType) {
       const modelInput = document.querySelector(
         `input[name="geometryType"][value="${saved.geometryType}"]`,
       );
       if (modelInput) modelInput.checked = true;
-    }
-    if (typeof saved.useFirstPointZero === "boolean") {
-      $("useFirstPointZero").checked = saved.useFirstPointZero;
     }
     if (typeof saved.repeatValues === "string") {
       $("repeatValues").value = saved.repeatValues;
@@ -780,38 +619,16 @@ function loadPersistedState() {
 }
 
 function loadSample() {
-  rows = structuredClone(sampleRows);
-  $("calibrationSlope").value = "0.00318177";
-  $("calibrationIntercept").value = "0";
-  $("calibrationSlopeUncertainty").value = "0.0000016";
-  $("calibrationInterceptUncertainty").value = "0.000010";
-  $("frameWidth").value = "39.00";
-  $("frameThickness").value = "0.14";
-  $("frameWidthUncertainty").value = "0.02";
-  $("frameThicknessUncertainty").value = "0.01";
-  $("maxVoltage").value = "1.56";
-  $("ruptureVoltage").value = "-0.06";
-  $("filmHeight").value = "3.37";
-  $("filmHeightUncertainty").value = "0.01";
-  $("liquidDensity").value = "1000.0";
-  $("liquidDensityUncertainty").value = "5.0";
-  $("confidenceLevel").value = "0.95";
-  $("useFirstPointZero").checked = true;
-  $("ringInnerDiameter").value = "32.70";
-  $("ringThickness").value = "1.00";
+  setInputValues(sampleValues);
   $("repeatValues").value = "";
   document.querySelector('input[name="geometryType"][value="frame"]').checked = true;
-  renderRows();
   calculateAndRender();
   persistState();
 }
 
 function resetAll() {
-  rows = structuredClone(blankRows);
-  $("repeatValues").value = "";
   localStorage.removeItem(STORAGE_KEY);
-  renderRows();
-  calculateAndRender();
+  loadSample();
 }
 
 function bindEvents() {
@@ -829,33 +646,7 @@ function bindEvents() {
     });
   });
 
-  $("useFirstPointZero").addEventListener("change", () => {
-    calculateAndRender();
-    persistState();
-  });
-
   $("repeatValues").addEventListener("input", () => {
-    calculateAndRender();
-    persistState();
-  });
-
-  $("addRowBtn").addEventListener("click", () => {
-    rows.push({ displacement: "", voltage: "" });
-    renderRows();
-    calculateAndRender();
-    persistState();
-  });
-
-  $("addFiveRowsBtn").addEventListener("click", () => {
-    rows.push(...structuredClone(blankRows.slice(0, 5)));
-    renderRows();
-    calculateAndRender();
-    persistState();
-  });
-
-  $("clearRowsBtn").addEventListener("click", () => {
-    rows = structuredClone(blankRows);
-    renderRows();
     calculateAndRender();
     persistState();
   });
@@ -864,7 +655,7 @@ function bindEvents() {
   $("resetBtn").addEventListener("click", resetAll);
 }
 
+setInputValues(sampleValues);
 loadPersistedState();
 bindEvents();
-renderRows();
 calculateAndRender();
