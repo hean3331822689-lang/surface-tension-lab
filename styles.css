@@ -288,6 +288,7 @@ textarea:focus,
 }
 
 .calculation-hero {
+  margin-top: 16px;
   padding: 22px;
   border: 1px solid #b7d3ff;
   border-radius: 8px;
@@ -391,6 +392,10 @@ textarea:focus,
   min-width: 560px;
   border-collapse: collapse;
   background: #fff;
+}
+
+.measurement-table {
+  min-width: 760px;
 }
 
 .data-table th,

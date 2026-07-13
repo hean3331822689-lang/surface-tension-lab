@@ -1,49 +1,45 @@
-const STORAGE_KEY = "surface-tension-lab-v3";
+const STORAGE_KEY = "surface-tension-lab-v4";
 
-const sampleValues = {
-  calibrationSlope: "0.00318177",
-  calibrationIntercept: "0",
-  calibrationSlopeUncertainty: "0.0000016",
-  calibrationInterceptUncertainty: "0.000010",
-  frameWidth: "39.00",
-  frameThickness: "0.14",
-  frameWidthUncertainty: "0.02",
-  frameThicknessUncertainty: "0.01",
-  maxVoltage: "1.56",
-  ruptureVoltage: "-0.06",
-  filmHeight: "3.37",
-  filmHeightUncertainty: "0.01",
-  liquidDensity: "1000.0",
-  liquidDensityUncertainty: "5.0",
-  ringInnerDiameter: "32.70",
-  ringThickness: "1.00",
-  ringCorrection: "1.000",
-  ringInnerDiameterUncertainty: "0.02",
-  ringThicknessUncertainty: "0.01",
-  ringCorrectionUncertainty: "0.005",
-  temperature: "25.0",
-  voltageResolution: "0.01",
-  displacementResolution: "0.01",
-  confidenceLevel: "0.95",
+const sampleParams = {
+  rho: "1000",
+  gravity: "9.80",
+  instrumentK: "314.29",
+  frameWidth: "0.036",
+  filmThickness: "0.00014",
+  coverageFactorInput: "2",
+  deltaU1: "0.01",
+  deltaU2: "0.01",
+  deltaH: "0.00001",
 };
 
-const paramIds = Object.keys(sampleValues);
+const sampleRows = [
+  { u1: "1.69", u2: "0.04", h: "0.00381" },
+  { u1: "1.75", u2: "0.11", h: "0.00382" },
+  { u1: "1.44", u2: "-0.19", h: "0.00337" },
+  { u1: "1.52", u2: "-0.16", h: "0.00348" },
+  { u1: "1.71", u2: "0", h: "0.00416" },
+  { u1: "1.71", u2: "0", h: "0.00339" },
+  { u1: "1.44", u2: "-0.22", h: "0.00351" },
+  { u1: "1.53", u2: "-0.14", h: "0.00348" },
+  { u1: "1.60", u2: "-0.06", h: "0.00376" },
+  { u1: "1.77", u2: "0.04", h: "0.00335" },
+  { u1: "1.54", u2: "-0.11", h: "0.00336" },
+];
+
+const blankRows = Array.from({ length: 6 }, () => ({ u1: "", u2: "", h: "" }));
+const paramIds = Object.keys(sampleParams);
+let rows = structuredClone(sampleRows);
 
 const $ = (id) => document.getElementById(id);
 
 function numberFromInput(id, fallback = 0) {
-  const element = $(id);
-  if (!element) return fallback;
-  const value = Number(element.value);
+  const value = Number($(id).value);
   return Number.isFinite(value) ? value : fallback;
 }
 
-function clamp(value, min, max) {
-  return Math.min(Math.max(value, min), max);
-}
-
-function mmToM(value) {
-  return value / 1000;
+function parseMaybeNumber(value) {
+  const parsed = Number(String(value).trim());
+  return Number.isFinite(parsed) ? parsed : NaN;
 }
 
 function square(value) {
@@ -54,530 +50,350 @@ function safeSqrt(value) {
   return Math.sqrt(Math.max(0, value));
 }
 
-function formatNumber(value, digits = 4) {
+function mean(values) {
+  if (!values.length) return NaN;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function formatNumber(value, digits = 6) {
   if (!Number.isFinite(value)) return "--";
-  if (Math.abs(value) >= 1000 || (Math.abs(value) > 0 && Math.abs(value) < 0.001)) {
-    return value.toExponential(3);
+  if (Math.abs(value) >= 1000 || (Math.abs(value) > 0 && Math.abs(value) < 0.0001)) {
+    return value.toExponential(4);
   }
   return value.toFixed(digits);
 }
 
 function formatVoltage(value) {
   if (!Number.isFinite(value)) return "--";
-  return `${formatNumber(value, 4)} mV`;
-}
-
-function formatForce(value) {
-  if (!Number.isFinite(value)) return "--";
-  return `${formatNumber(value * 1000, 3)} mN`;
-}
-
-function formatGamma(value) {
-  if (!Number.isFinite(value)) return "--";
-  return `${formatNumber(value * 1000, 3)} mN/m`;
+  return `${formatNumber(value, 5)} mV`;
 }
 
 function formatLength(value) {
   if (!Number.isFinite(value)) return "--";
-  return `${formatNumber(value * 1000, 3)} mm`;
+  return `${formatNumber(value, 6)} m`;
 }
 
-function formatInterval(mean, expanded) {
-  if (!Number.isFinite(mean) || !Number.isFinite(expanded)) return "等待有效数据";
-  return `[${formatGamma(mean - expanded)}, ${formatGamma(mean + expanded)}]`;
+function formatGamma(value) {
+  if (!Number.isFinite(value)) return "--";
+  return `${formatNumber(value, 6)} N/m`;
 }
 
-function getGeometryType() {
-  return document.querySelector('input[name="geometryType"]:checked')?.value || "frame";
+function formatGammaCompact(value) {
+  if (!Number.isFinite(value)) return "--";
+  return `${formatNumber(value, 4)} N/m`;
+}
+
+function formatInterval(meanValue, expanded) {
+  if (!Number.isFinite(meanValue) || !Number.isFinite(expanded)) return "等待有效数据";
+  return `[${formatGamma(meanValue - expanded)}, ${formatGamma(meanValue + expanded)}]`;
 }
 
 function getParams() {
-  const pInput = numberFromInput("confidenceLevel", 0.95);
   return {
-    geometryType: getGeometryType(),
-    calibrationSlope: numberFromInput("calibrationSlope"),
-    calibrationIntercept: numberFromInput("calibrationIntercept"),
-    calibrationSlopeUncertainty: Math.abs(numberFromInput("calibrationSlopeUncertainty")),
-    calibrationInterceptUncertainty: Math.abs(numberFromInput("calibrationInterceptUncertainty")),
+    rho: numberFromInput("rho"),
+    gravity: numberFromInput("gravity"),
+    instrumentK: numberFromInput("instrumentK"),
     frameWidth: numberFromInput("frameWidth"),
-    frameThickness: numberFromInput("frameThickness"),
-    frameWidthUncertainty: Math.abs(numberFromInput("frameWidthUncertainty")),
-    frameThicknessUncertainty: Math.abs(numberFromInput("frameThicknessUncertainty")),
-    maxVoltage: numberFromInput("maxVoltage"),
-    ruptureVoltage: numberFromInput("ruptureVoltage"),
-    filmHeight: numberFromInput("filmHeight"),
-    filmHeightUncertainty: Math.abs(numberFromInput("filmHeightUncertainty")),
-    liquidDensity: numberFromInput("liquidDensity"),
-    liquidDensityUncertainty: Math.abs(numberFromInput("liquidDensityUncertainty")),
-    ringInnerDiameter: numberFromInput("ringInnerDiameter"),
-    ringThickness: numberFromInput("ringThickness"),
-    ringCorrection: numberFromInput("ringCorrection", 1),
-    ringInnerDiameterUncertainty: Math.abs(numberFromInput("ringInnerDiameterUncertainty")),
-    ringThicknessUncertainty: Math.abs(numberFromInput("ringThicknessUncertainty")),
-    ringCorrectionUncertainty: Math.abs(numberFromInput("ringCorrectionUncertainty")),
-    temperature: numberFromInput("temperature"),
-    voltageResolution: Math.abs(numberFromInput("voltageResolution")),
-    displacementResolution: Math.abs(numberFromInput("displacementResolution")),
-    confidenceLevel: clamp(pInput, 0.95, 0.999),
+    filmThickness: numberFromInput("filmThickness"),
+    coverageFactor: numberFromInput("coverageFactorInput", 2),
+    deltaU1: Math.abs(numberFromInput("deltaU1")),
+    deltaU2: Math.abs(numberFromInput("deltaU2")),
+    deltaH: Math.abs(numberFromInput("deltaH")),
   };
 }
 
-function calculateVoltageForce(params) {
-  const deltaVoltage = params.maxVoltage - params.ruptureVoltage;
-  const sensorForce = params.calibrationSlope * deltaVoltage;
-  const voltageStandard = params.voltageResolution / (2 * Math.sqrt(3));
-  const deltaVoltageUncertainty = Math.sqrt(2) * voltageStandard;
-  const forceUncertainty = safeSqrt(
-    square(deltaVoltage * params.calibrationSlopeUncertainty) +
-      square(params.calibrationSlope * deltaVoltageUncertainty),
+function getValidRows() {
+  return rows
+    .map((row, index) => ({
+      rowIndex: index,
+      u1: parseMaybeNumber(row.u1),
+      u2: parseMaybeNumber(row.u2),
+      h: parseMaybeNumber(row.h),
+    }))
+    .filter((row) => Number.isFinite(row.u1) && Number.isFinite(row.u2) && Number.isFinite(row.h));
+}
+
+function gammaValue(params, u1, u2, h) {
+  return (
+    (u1 - u2) / (2 * params.instrumentK * params.frameWidth) -
+    (params.rho * params.gravity * params.filmThickness * h) / 2
   );
-
-  return {
-    deltaVoltage,
-    deltaVoltageUncertainty,
-    sensorForce,
-    forceUncertainty,
-  };
 }
 
-function calculateCurrentGamma(params) {
-  const voltageForce = calculateVoltageForce(params);
-  const { deltaVoltage, deltaVoltageUncertainty, sensorForce, forceUncertainty } = voltageForce;
+function uA(values) {
+  const n = values.length;
+  if (n < 2) return NaN;
+  const avg = mean(values);
+  const sumSq = values.reduce((sum, value) => sum + square(value - avg), 0);
+  return Math.sqrt(sumSq / (n * (n - 1)));
+}
+
+function uB(instrumentDivision) {
+  return instrumentDivision / Math.sqrt(3);
+}
+
+function uCombine(values, instrumentDivision) {
+  const typeA = uA(values);
+  const typeB = uB(instrumentDivision);
+  return safeSqrt(square(typeA) + square(typeB));
+}
+
+function calculate() {
+  const params = getParams();
+  const validRows = getValidRows();
 
   if (
-    !Number.isFinite(deltaVoltage) ||
-    !Number.isFinite(sensorForce) ||
-    !Number.isFinite(forceUncertainty)
+    validRows.length < 2 ||
+    params.instrumentK <= 0 ||
+    params.frameWidth <= 0 ||
+    !Number.isFinite(params.filmThickness)
   ) {
-    return invalidCalculation();
+    return invalidCalculation(params, validRows);
   }
 
-  if (params.geometryType === "frame") {
-    const length = mmToM(params.frameWidth);
-    const thickness = mmToM(params.frameThickness);
-    const maxDisplacement = mmToM(params.filmHeight);
-    const uLength = mmToM(params.frameWidthUncertainty);
-    const uThickness = mmToM(params.frameThicknessUncertainty);
-    const uMaxDisplacement = mmToM(params.filmHeightUncertainty);
-    const density = params.liquidDensity;
-    const uDensity = params.liquidDensityUncertainty;
-    const gravityAcceleration = 9.80665;
-    const filmGravity = density * length * thickness * maxDisplacement * gravityAcceleration;
-    const effectiveForce = sensorForce - filmGravity;
-    const denominator = 2 * length;
+  const u1Values = validRows.map((row) => row.u1);
+  const u2Values = validRows.map((row) => row.u2);
+  const hValues = validRows.map((row) => row.h);
+  const u1Average = mean(u1Values);
+  const u2Average = mean(u2Values);
+  const hAverage = mean(hValues);
+  const gammaAverage = gammaValue(params, u1Average, u2Average, hAverage);
 
-    if (denominator <= 0 || !Number.isFinite(filmGravity)) {
-      return invalidCalculation();
-    }
+  const uA1 = uA(u1Values);
+  const uB1 = uB(params.deltaU1);
+  const uU1 = uCombine(u1Values, params.deltaU1);
+  const uA2 = uA(u2Values);
+  const uB2 = uB(params.deltaU2);
+  const uU2 = uCombine(u2Values, params.deltaU2);
+  const uAh = uA(hValues);
+  const uBh = uB(params.deltaH);
+  const uH = uCombine(hValues, params.deltaH);
 
-    const gamma = effectiveForce / denominator;
-    const dGammaDK = deltaVoltage / denominator;
-    const dGammaDDeltaU = params.calibrationSlope / denominator;
-    const dGammaDLength = -sensorForce / (2 * square(length));
-    const dGammaDThickness = (-density * maxDisplacement * gravityAcceleration) / 2;
-    const dGammaDDisplacement = (-density * thickness * gravityAcceleration) / 2;
-    const dGammaDDensity = (-thickness * maxDisplacement * gravityAcceleration) / 2;
-    const typeB = safeSqrt(
-      square(dGammaDK * params.calibrationSlopeUncertainty) +
-        square(dGammaDDeltaU * deltaVoltageUncertainty) +
-        square(dGammaDLength * uLength) +
-        square(dGammaDThickness * uThickness) +
-        square(dGammaDDisplacement * uMaxDisplacement) +
-        square(dGammaDDensity * uDensity),
-    );
-
-    return {
-      gamma,
-      typeB,
-      forceUncertainty,
-      denominator,
-      deltaVoltage,
-      sensorForce,
-      filmGravity,
-      effectiveForce,
-      formula: "γ = [K(Umax - U断) - ρLdxmaxg] / 2L",
-      steps: [
-        `ΔU = Umax - U断 = ${formatVoltage(deltaVoltage)}`,
-        `FΔU = KΔU = ${formatForce(sensorForce)}`,
-        `G = ρLdxmaxg = ${formatForce(filmGravity)}`,
-        `F = FΔU - G = ${formatForce(effectiveForce)}`,
-        `γ = F / 2L = ${formatGamma(gamma)}`,
-      ],
-      uncertaintyRows: [
-        ["K", "力传感器定标斜率", `${formatNumber(params.calibrationSlopeUncertainty, 6)} N/mV`],
-        ["Umax - U断", "峰值与拉脱后稳定电压差", `${formatNumber(deltaVoltageUncertainty, 4)} mV`],
-        ["L", "门型框内宽", `${formatNumber(params.frameWidthUncertainty, 3)} mm`],
-        ["d", "门型框厚度", `${formatNumber(params.frameThicknessUncertainty, 3)} mm`],
-        ["xmax", "最大位移", `${formatNumber(params.filmHeightUncertainty, 3)} mm`],
-        ["ρ", "液体密度", `${formatNumber(params.liquidDensityUncertainty, 2)} kg/m³`],
-      ],
-    };
-  }
-
-  const innerDiameter = mmToM(params.ringInnerDiameter);
-  const ringThickness = mmToM(params.ringThickness);
-  const uInnerDiameter = mmToM(params.ringInnerDiameterUncertainty);
-  const uRingThickness = mmToM(params.ringThicknessUncertainty);
-  const correction = params.ringCorrection;
-  const denominator = 2 * Math.PI * (innerDiameter + ringThickness);
-
-  if (denominator <= 0) return invalidCalculation();
-
-  const effectiveForce = sensorForce;
-  const gamma = (correction * effectiveForce) / denominator;
-  const cForce = correction / denominator;
-  const cCorrection = effectiveForce / denominator;
-  const cDiameter = (-correction * effectiveForce * 2 * Math.PI) / square(denominator);
-  const cThickness = cDiameter;
-  const typeB = safeSqrt(
-    square(cForce * forceUncertainty) +
-      square(cCorrection * params.ringCorrectionUncertainty) +
-      square(cDiameter * uInnerDiameter) +
-      square(cThickness * uRingThickness),
+  const partialU1 = 1 / (2 * params.instrumentK * params.frameWidth);
+  const partialU2 = -1 / (2 * params.instrumentK * params.frameWidth);
+  const partialH = -(params.rho * params.gravity * params.filmThickness) / 2;
+  const standardGammaUncertainty = safeSqrt(
+    square(partialU1 * uU1) + square(partialU2 * uU2) + square(partialH * uH),
   );
+  const expandedGammaUncertainty = params.coverageFactor * standardGammaUncertainty;
 
   return {
-    gamma,
-    typeB,
-    forceUncertainty,
-    denominator,
-    deltaVoltage,
-    sensorForce,
-    filmGravity: NaN,
-    effectiveForce,
-    formula: "γ = cK(Umax - U断) / [2π(R + r)]",
-    steps: [
-      `ΔU = Umax - U断 = ${formatVoltage(deltaVoltage)}`,
-      `FΔU = KΔU = ${formatForce(sensorForce)}`,
-      `2π(R + r) = ${formatLength(denominator)}`,
-      `γ = cFΔU / [2π(R + r)] = ${formatGamma(gamma)}`,
-    ],
-    uncertaintyRows: [
-      ["K", "力传感器定标斜率", `${formatNumber(params.calibrationSlopeUncertainty, 6)} N/mV`],
-      ["Umax - U断", "峰值与拉脱后稳定电压差", `${formatNumber(deltaVoltageUncertainty, 4)} mV`],
-      ["R", "金属环内径", `${formatNumber(params.ringInnerDiameterUncertainty, 3)} mm`],
-      ["r", "金属环厚度", `${formatNumber(params.ringThicknessUncertainty, 3)} mm`],
-      ["c", "金属环修正系数", formatNumber(params.ringCorrectionUncertainty, 4)],
-    ],
+    params,
+    validRows,
+    u1Average,
+    u2Average,
+    hAverage,
+    gammaAverage,
+    uA1,
+    uB1,
+    uU1,
+    uA2,
+    uB2,
+    uU2,
+    uAh,
+    uBh,
+    uH,
+    partialU1,
+    partialU2,
+    partialH,
+    standardGammaUncertainty,
+    expandedGammaUncertainty,
+    rowGammas: new Map(
+      validRows.map((row) => [row.rowIndex, gammaValue(params, row.u1, row.u2, row.h)]),
+    ),
+    formula: "γ = (U1 - U2)/(2KL) - ρgdh/2",
   };
 }
 
-function invalidCalculation() {
+function invalidCalculation(params, validRows) {
   return {
-    gamma: NaN,
-    typeB: NaN,
-    forceUncertainty: NaN,
-    denominator: NaN,
-    deltaVoltage: NaN,
-    sensorForce: NaN,
-    filmGravity: NaN,
-    effectiveForce: NaN,
-    formula: "--",
-    steps: [],
-    uncertaintyRows: [],
+    params,
+    validRows,
+    u1Average: NaN,
+    u2Average: NaN,
+    hAverage: NaN,
+    gammaAverage: NaN,
+    uA1: NaN,
+    uB1: Number.isFinite(params.deltaU1) ? uB(params.deltaU1) : NaN,
+    uU1: NaN,
+    uA2: NaN,
+    uB2: Number.isFinite(params.deltaU2) ? uB(params.deltaU2) : NaN,
+    uU2: NaN,
+    uAh: NaN,
+    uBh: Number.isFinite(params.deltaH) ? uB(params.deltaH) : NaN,
+    uH: NaN,
+    partialU1: NaN,
+    partialU2: NaN,
+    partialH: NaN,
+    standardGammaUncertainty: NaN,
+    expandedGammaUncertainty: NaN,
+    rowGammas: new Map(),
+    formula: "γ = (U1 - U2)/(2KL) - ρgdh/2",
   };
 }
 
-function parseRepeatValues(currentGamma) {
-  const text = $("repeatValues").value.trim();
-  const values = text
-    ? text
-        .split(/[\s,，;；]+/)
-        .map(Number)
-        .filter(Number.isFinite)
-    : [];
-  if (values.length) return values;
-  return Number.isFinite(currentGamma) ? [currentGamma] : [];
-}
-
-function mean(values) {
-  if (!values.length) return NaN;
-  return values.reduce((sum, value) => sum + value, 0) / values.length;
-}
-
-function sampleStandardDeviation(values) {
-  if (values.length < 2) return 0;
-  const avg = mean(values);
-  const variance =
-    values.reduce((sum, value) => sum + square(value - avg), 0) / (values.length - 1);
-  return Math.sqrt(variance);
-}
-
-function normalInverse(probability) {
-  const a = [
-    -3.969683028665376e1,
-    2.209460984245205e2,
-    -2.759285104469687e2,
-    1.38357751867269e2,
-    -3.066479806614716e1,
-    2.506628277459239,
-  ];
-  const b = [
-    -5.447609879822406e1,
-    1.615858368580409e2,
-    -1.556989798598866e2,
-    6.680131188771972e1,
-    -1.328068155288572e1,
-  ];
-  const c = [
-    -7.784894002430293e-3,
-    -3.223964580411365e-1,
-    -2.400758277161838,
-    -2.549732539343734,
-    4.374664141464968,
-    2.938163982698783,
-  ];
-  const d = [
-    7.784695709041462e-3,
-    3.224671290700398e-1,
-    2.445134137142996,
-    3.754408661907416,
-  ];
-  const pLow = 0.02425;
-  const pHigh = 1 - pLow;
-
-  if (probability <= 0 || probability >= 1) return NaN;
-
-  if (probability < pLow) {
-    const q = Math.sqrt(-2 * Math.log(probability));
-    return (
-      (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
-      ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1)
-    );
-  }
-
-  if (probability <= pHigh) {
-    const q = probability - 0.5;
-    const r = q * q;
-    return (
-      (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) *
-      q /
-      (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1)
-    );
-  }
-
-  const q = Math.sqrt(-2 * Math.log(1 - probability));
-  return -(
-    (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
-    ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1)
-  );
-}
-
-function studentTCoverageFactor(centralProbability, degreesOfFreedom) {
-  const q = (1 + centralProbability) / 2;
-  const z = normalInverse(q);
-  if (!Number.isFinite(degreesOfFreedom) || degreesOfFreedom > 1000) return z;
-  if (degreesOfFreedom <= 1) {
-    return Math.tan(Math.PI * (q - 0.5));
-  }
-
-  const nu = degreesOfFreedom;
-  const z2 = z * z;
-  const z3 = z2 * z;
-  const z5 = z3 * z2;
-  const z7 = z5 * z2;
-
-  return (
-    z +
-    (z3 + z) / (4 * nu) +
-    (5 * z5 + 16 * z3 + 3 * z) / (96 * square(nu)) +
-    (3 * z7 + 19 * z5 + 17 * z3 - 15 * z) / (384 * nu * nu * nu)
-  );
-}
-
-function calculateUncertainty(params, current) {
-  const repeatValues = parseRepeatValues(current.gamma);
-  const average = mean(repeatValues);
-  const standardDeviation = sampleStandardDeviation(repeatValues);
-  const typeA = repeatValues.length >= 2 ? standardDeviation / Math.sqrt(repeatValues.length) : 0;
-  const typeB = Number.isFinite(current.typeB) ? current.typeB : 0;
-  const combined = safeSqrt(square(typeA) + square(typeB));
-  const finiteTypeADf = typeA > 0 && repeatValues.length > 1 ? repeatValues.length - 1 : Infinity;
-  const effectiveDf =
-    Number.isFinite(finiteTypeADf) && combined > 0 && typeA > 0
-      ? Math.pow(combined, 4) / (Math.pow(typeA, 4) / finiteTypeADf)
-      : Infinity;
-  const coverageFactor = studentTCoverageFactor(params.confidenceLevel, effectiveDf);
-  const expanded = coverageFactor * combined;
-
-  return {
-    repeatValues,
-    average,
-    standardDeviation,
-    typeA,
-    typeB,
-    combined,
-    effectiveDf,
-    coverageFactor,
-    expanded,
-  };
-}
-
-function renderModelVisibility() {
-  const isFrame = getGeometryType() === "frame";
-  $("frameGeometrySection").classList.toggle("hidden", !isFrame);
-  $("ringGeometrySection").classList.toggle("hidden", isFrame);
-}
-
-function updateResultText(params, current, uncertainty) {
-  $("maxForce").textContent = formatForce(current.sensorForce);
-  $("filmGravity").textContent = params.geometryType === "frame" ? formatForce(current.filmGravity) : "--";
-  $("effectiveForce").textContent = formatForce(current.effectiveForce);
-  $("currentGamma").textContent = formatGamma(current.gamma);
-  $("repeatCount").textContent = uncertainty.repeatValues.length
-    ? String(uncertainty.repeatValues.length)
-    : "--";
-  $("meanGamma").textContent = formatGamma(uncertainty.average);
-  $("typeA").textContent = formatGamma(uncertainty.typeA);
-  $("typeB").textContent = formatGamma(uncertainty.typeB);
-  $("combinedU").textContent = formatGamma(uncertainty.combined);
-  $("coverageFactor").textContent = Number.isFinite(uncertainty.coverageFactor)
-    ? `${formatNumber(uncertainty.coverageFactor, 3)} (p=${formatNumber(params.confidenceLevel, 3)})`
-    : "--";
-  $("expandedU").textContent = formatGamma(uncertainty.expanded);
-  $("formulaText").textContent = current.formula;
-
-  if (Number.isFinite(uncertainty.average) && Number.isFinite(uncertainty.expanded)) {
-    $("finalGamma").textContent = `${formatGamma(uncertainty.average)} ± ${formatGamma(
-      uncertainty.expanded,
-    )}`;
-    $("finalInterval").textContent = `置信区间：${formatInterval(
-      uncertainty.average,
-      uncertainty.expanded,
-    )}`;
-  } else {
-    $("finalGamma").textContent = "--";
-    $("finalInterval").textContent = "等待有效数据";
-  }
-}
-
-function renderCenterResults(params, current, uncertainty) {
-  $("centerGamma").textContent = formatGamma(current.gamma);
-  $("centerInterval").textContent =
-    Number.isFinite(uncertainty.average) && Number.isFinite(uncertainty.expanded)
-      ? `置信区间：${formatInterval(uncertainty.average, uncertainty.expanded)}`
-      : "等待有效数据";
-  $("centerDeltaVoltage").textContent = formatVoltage(current.deltaVoltage);
-  $("centerSensorForce").textContent = formatForce(current.sensorForce);
-  $("centerFilmGravity").textContent =
-    params.geometryType === "frame" ? formatForce(current.filmGravity) : "--";
-  $("centerEffectiveForce").textContent = formatForce(current.effectiveForce);
-  $("centerDenominator").textContent = formatLength(current.denominator);
-  $("centerExpandedU").textContent = formatGamma(uncertainty.expanded);
-  $("centerFormula").textContent = current.formula;
-  $("calculationSteps").innerHTML = current.steps.length
-    ? current.steps.map((step) => `<li>${step}</li>`).join("")
-    : "<li>等待有效数据</li>";
-}
-
-function renderReport(params, current, uncertainty) {
-  const modelName = params.geometryType === "frame" ? "门型金属框" : "金属环";
-  const geometryRows =
-    params.geometryType === "frame"
-      ? `
-        <tr><td>L</td><td>${formatNumber(params.frameWidth, 3)} mm</td></tr>
-        <tr><td>d</td><td>${formatNumber(params.frameThickness, 3)} mm</td></tr>
-        <tr><td>xmax</td><td>${formatNumber(params.filmHeight, 3)} mm</td></tr>
-        <tr><td>ρ</td><td>${formatNumber(params.liquidDensity, 2)} kg/m³</td></tr>
-      `
-      : `
-        <tr><td>R</td><td>${formatNumber(params.ringInnerDiameter, 3)} mm</td></tr>
-        <tr><td>r</td><td>${formatNumber(params.ringThickness, 3)} mm</td></tr>
-        <tr><td>c</td><td>${formatNumber(params.ringCorrection, 4)}</td></tr>
-      `;
-
-  const uncertaintyRows = current.uncertaintyRows
+function renderRows(result) {
+  const body = $("measurementBody");
+  body.innerHTML = rows
     .map(
-      ([symbol, source, value]) => `
-        <tr>
-          <td>${symbol}</td>
-          <td>${source}</td>
-          <td>${value}</td>
+      (row, index) => `
+        <tr data-row="${index}">
+          <td>${index + 1}</td>
+          <td>
+            <input type="number" step="0.001" value="${row.u1}" data-field="u1" data-index="${index}" aria-label="第${index + 1}行 U1" />
+          </td>
+          <td>
+            <input type="number" step="0.001" value="${row.u2}" data-field="u2" data-index="${index}" aria-label="第${index + 1}行 U2" />
+          </td>
+          <td>
+            <input type="number" step="0.00001" value="${row.h}" data-field="h" data-index="${index}" aria-label="第${index + 1}行 h" />
+          </td>
+          <td class="force-cell">${formatNumber(result.rowGammas.get(index), 6)}</td>
+          <td><button class="row-delete" data-delete="${index}" aria-label="删除第${index + 1}行">×</button></td>
         </tr>
       `,
     )
     .join("");
 
-  const stepRows = current.steps.map((step) => `<li>${step}</li>`).join("");
+  body.querySelectorAll("input").forEach((input) => {
+    input.addEventListener("input", (event) => {
+      const target = event.target;
+      rows[Number(target.dataset.index)][target.dataset.field] = target.value;
+      calculateAndRender();
+      persistState();
+    });
+  });
 
+  body.querySelectorAll("[data-delete]").forEach((button) => {
+    button.addEventListener("click", () => {
+      rows.splice(Number(button.dataset.delete), 1);
+      if (!rows.length) rows.push({ u1: "", u2: "", h: "" });
+      calculateAndRender();
+      persistState();
+    });
+  });
+}
+
+function updateText(result) {
+  const { params } = result;
+  const finalText =
+    Number.isFinite(result.gammaAverage) && Number.isFinite(result.expandedGammaUncertainty)
+      ? `${formatGamma(result.gammaAverage)} ± ${formatGamma(result.expandedGammaUncertainty)}`
+      : "--";
+  const intervalText =
+    Number.isFinite(result.gammaAverage) && Number.isFinite(result.expandedGammaUncertainty)
+      ? `置信区间：${formatInterval(result.gammaAverage, result.expandedGammaUncertainty)}`
+      : "等待有效数据";
+
+  $("centerGamma").textContent = finalText;
+  $("centerInterval").textContent = intervalText;
+  $("finalGamma").textContent = finalText;
+  $("finalInterval").textContent = intervalText;
+  $("u1Average").textContent = formatVoltage(result.u1Average);
+  $("u2Average").textContent = formatVoltage(result.u2Average);
+  $("hAverage").textContent = formatLength(result.hAverage);
+  $("standardGammaUncertainty").textContent = formatGamma(result.standardGammaUncertainty);
+  $("expandedGammaUncertainty").textContent = formatGamma(result.expandedGammaUncertainty);
+  $("repeatCount").textContent = result.validRows.length ? String(result.validRows.length) : "--";
+  $("formulaText").textContent = result.formula;
+  $("centerFormula").textContent = result.formula;
+
+  $("uA1").textContent = formatVoltage(result.uA1);
+  $("uB1").textContent = formatVoltage(result.uB1);
+  $("uU1").textContent = formatVoltage(result.uU1);
+  $("uA2").textContent = formatVoltage(result.uA2);
+  $("uB2").textContent = formatVoltage(result.uB2);
+  $("uU2").textContent = formatVoltage(result.uU2);
+  $("uAh").textContent = formatLength(result.uAh);
+  $("uBh").textContent = formatLength(result.uBh);
+  $("uH").textContent = formatLength(result.uH);
+  $("partialU1").textContent = formatNumber(result.partialU1, 8);
+  $("partialU2").textContent = formatNumber(result.partialU2, 8);
+  $("partialH").textContent = formatNumber(result.partialH, 6);
+  $("kpValue").textContent = formatNumber(params.coverageFactor, 3);
+}
+
+function renderCalculationSteps(result) {
+  const steps = [
+    `U1 平均值 = ${formatVoltage(result.u1Average)}，U2 平均值 = ${formatVoltage(result.u2Average)}，h 平均值 = ${formatLength(result.hAverage)}`,
+    `u(U1) = √[uA(U1)² + uB(U1)²] = ${formatVoltage(result.uU1)}`,
+    `u(U2) = √[uA(U2)² + uB(U2)²] = ${formatVoltage(result.uU2)}`,
+    `u(h) = √[uA(h)² + uB(h)²] = ${formatLength(result.uH)}`,
+    `∂γ/∂U1 = ${formatNumber(result.partialU1, 8)}，∂γ/∂U2 = ${formatNumber(result.partialU2, 8)}，∂γ/∂h = ${formatNumber(result.partialH, 6)}`,
+    `uγ = √[(∂γ/∂U1·uU1)² + (∂γ/∂U2·uU2)² + (∂γ/∂h·uh)²] = ${formatGamma(result.standardGammaUncertainty)}`,
+    `Uγ = kp·uγ = ${formatGamma(result.expandedGammaUncertainty)}`,
+  ];
+  $("calculationSteps").innerHTML = steps.map((step) => `<li>${step}</li>`).join("");
+}
+
+function renderReport(result) {
+  const { params } = result;
   $("reportContent").innerHTML = `
     <article class="report-block">
-      <h3>实验参数</h3>
+      <h3>实验常数</h3>
       <table class="mini-table">
         <tbody>
-          <tr><td>模型</td><td>${modelName}</td></tr>
-          <tr><td>K</td><td>${formatNumber(params.calibrationSlope, 6)} N/mV</td></tr>
-          <tr><td>b</td><td>${formatNumber(params.calibrationIntercept, 6)} N</td></tr>
-          <tr><td>T</td><td>${formatNumber(params.temperature, 1)} °C</td></tr>
-          ${geometryRows}
+          <tr><td>ρ</td><td>${formatNumber(params.rho, 2)} kg/m³</td></tr>
+          <tr><td>g</td><td>${formatNumber(params.gravity, 2)} m/s²</td></tr>
+          <tr><td>K</td><td>${formatNumber(params.instrumentK, 2)} mV/N</td></tr>
+          <tr><td>L</td><td>${formatNumber(params.frameWidth, 6)} m</td></tr>
+          <tr><td>d</td><td>${formatNumber(params.filmThickness, 6)} m</td></tr>
+          <tr><td>kp</td><td>${formatNumber(params.coverageFactor, 3)}</td></tr>
         </tbody>
       </table>
     </article>
     <article class="report-block">
-      <h3>直接读数</h3>
+      <h3>平均读数</h3>
       <ul>
-        <li>Umax = ${formatNumber(params.maxVoltage, 4)} mV</li>
-        <li>U断 = ${formatNumber(params.ruptureVoltage, 4)} mV</li>
-        <li>ΔU = ${formatVoltage(current.deltaVoltage)}</li>
-        <li>最大位移 xmax = ${formatNumber(params.filmHeight, 3)} mm</li>
+        <li>U1avg = ${formatVoltage(result.u1Average)}</li>
+        <li>U2avg = ${formatVoltage(result.u2Average)}</li>
+        <li>havg = ${formatLength(result.hAverage)}</li>
+        <li>n = ${result.validRows.length || "--"}</li>
       </ul>
     </article>
     <article class="report-block">
-      <h3>统计结果</h3>
+      <h3>合成标准不确定度</h3>
       <ul>
-        <li>重复次数 n = ${uncertainty.repeatValues.length || "--"}</li>
-        <li>平均值 γ̄ = ${formatGamma(uncertainty.average)}</li>
-        <li>A 类 uA = ${formatGamma(uncertainty.typeA)}</li>
-        <li>B 类 uB = ${formatGamma(uncertainty.typeB)}</li>
+        <li>u(U1) = ${formatVoltage(result.uU1)}</li>
+        <li>u(U2) = ${formatVoltage(result.uU2)}</li>
+        <li>u(h) = ${formatLength(result.uH)}</li>
+        <li>uγ = ${formatGamma(result.standardGammaUncertainty)}</li>
       </ul>
     </article>
     <article class="report-block">
-      <h3>置信区间</h3>
+      <h3>最终结果</h3>
       <ul>
-        <li>p = ${formatNumber(params.confidenceLevel, 3)}</li>
-        <li>k = ${formatNumber(uncertainty.coverageFactor, 3)}</li>
-        <li>U = ${formatGamma(uncertainty.expanded)}</li>
-        <li>${formatInterval(uncertainty.average, uncertainty.expanded)}</li>
+        <li>γ平均值 = ${formatGamma(result.gammaAverage)}</li>
+        <li>Uγ(P=0.95) = ${formatGamma(result.expandedGammaUncertainty)}</li>
+        <li>γ = (${formatGammaCompact(result.gammaAverage)} ± ${formatGammaCompact(result.expandedGammaUncertainty)})</li>
       </ul>
     </article>
     <article class="report-block wide">
-      <h3>计算展开</h3>
+      <h3>公式与偏导</h3>
       <ul>
-        ${stepRows || "<li>暂无有效计算</li>"}
+        <li>γ = (U1 - U2)/(2KL) - ρgdh/2</li>
+        <li>∂γ/∂U1 = ${formatNumber(result.partialU1, 8)}</li>
+        <li>∂γ/∂U2 = ${formatNumber(result.partialU2, 8)}</li>
+        <li>∂γ/∂h = ${formatNumber(result.partialH, 6)}</li>
       </ul>
-    </article>
-    <article class="report-block wide">
-      <h3>不确定度分量</h3>
-      <table class="mini-table">
-        <thead>
-          <tr><th>符号</th><th>来源</th><th>标准不确定度</th></tr>
-        </thead>
-        <tbody>
-          ${uncertaintyRows || "<tr><td colspan=\"3\">暂无有效分量</td></tr>"}
-        </tbody>
-      </table>
     </article>
     <article class="report-block wide">
       <h3>实验结论</h3>
       <p>
-        在 ${formatNumber(params.temperature, 1)} °C 条件下，采用 ${modelName} 模型处理数据。
-        本页不使用过程曲线拟合，仅根据 Umax、U断 和最大位移等直接读数计算，最终结果为
-        <strong>${formatGamma(uncertainty.average)} ± ${formatGamma(uncertainty.expanded)}</strong>，
-        置信水平 p = ${formatNumber(params.confidenceLevel, 3)}。
+        按 A 类、B 类不确定度合成并进行偏导传播，最终表面张力系数为
+        <strong>${formatGamma(result.gammaAverage)} ± ${formatGamma(result.expandedGammaUncertainty)}</strong>，
+        置信水平按 kp = ${formatNumber(params.coverageFactor, 3)} 处理。
       </p>
     </article>
   `;
 }
 
 function calculateAndRender() {
-  renderModelVisibility();
-  const params = getParams();
-  const current = calculateCurrentGamma(params);
-  const uncertainty = calculateUncertainty(params, current);
-
-  updateResultText(params, current, uncertainty);
-  renderCenterResults(params, current, uncertainty);
-  renderReport(params, current, uncertainty);
+  const result = calculate();
+  renderRows(result);
+  updateText(result);
+  renderCalculationSteps(result);
+  renderReport(result);
 }
 
 function persistState() {
@@ -585,12 +401,7 @@ function persistState() {
   paramIds.forEach((id) => {
     params[id] = $(id).value;
   });
-  const payload = {
-    params,
-    geometryType: getGeometryType(),
-    repeatValues: $("repeatValues").value,
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ params, rows }));
 }
 
 function setInputValues(values) {
@@ -604,24 +415,15 @@ function loadPersistedState() {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!saved) return;
     if (saved.params) setInputValues(saved.params);
-    if (saved.geometryType) {
-      const modelInput = document.querySelector(
-        `input[name="geometryType"][value="${saved.geometryType}"]`,
-      );
-      if (modelInput) modelInput.checked = true;
-    }
-    if (typeof saved.repeatValues === "string") {
-      $("repeatValues").value = saved.repeatValues;
-    }
+    if (Array.isArray(saved.rows)) rows = saved.rows;
   } catch {
     localStorage.removeItem(STORAGE_KEY);
   }
 }
 
 function loadSample() {
-  setInputValues(sampleValues);
-  $("repeatValues").value = "";
-  document.querySelector('input[name="geometryType"][value="frame"]').checked = true;
+  setInputValues(sampleParams);
+  rows = structuredClone(sampleRows);
   calculateAndRender();
   persistState();
 }
@@ -639,14 +441,14 @@ function bindEvents() {
     });
   });
 
-  document.querySelectorAll('input[name="geometryType"]').forEach((input) => {
-    input.addEventListener("change", () => {
-      calculateAndRender();
-      persistState();
-    });
+  $("addRowBtn").addEventListener("click", () => {
+    rows.push({ u1: "", u2: "", h: "" });
+    calculateAndRender();
+    persistState();
   });
 
-  $("repeatValues").addEventListener("input", () => {
+  $("clearRowsBtn").addEventListener("click", () => {
+    rows = structuredClone(blankRows);
     calculateAndRender();
     persistState();
   });
@@ -655,7 +457,7 @@ function bindEvents() {
   $("resetBtn").addEventListener("click", resetAll);
 }
 
-setInputValues(sampleValues);
+setInputValues(sampleParams);
 loadPersistedState();
 bindEvents();
 calculateAndRender();
