@@ -109,6 +109,62 @@
         display: none !important;
       }
 
+      .math,
+      .unit {
+        display: inline;
+        font-family: "Times New Roman", Times, serif;
+        font-style: normal;
+        letter-spacing: 0;
+        white-space: nowrap;
+      }
+
+      .math-inline {
+        margin: 0 0.25ch;
+      }
+
+      .formula-display {
+        color: var(--primary-dark);
+        font-weight: 800;
+        line-height: 1.45;
+      }
+
+      .var {
+        font-family: "Times New Roman", Times, serif;
+        font-style: italic;
+      }
+
+      .op,
+      .roman,
+      .number,
+      .unit {
+        font-style: normal;
+      }
+
+      .math sub,
+      .math sup,
+      .unit sup {
+        position: relative;
+        vertical-align: baseline;
+        font-size: 70%;
+        line-height: 0;
+      }
+
+      .math sub {
+        bottom: -0.25em;
+      }
+
+      .math sup,
+      .unit sup {
+        top: -0.25em;
+      }
+
+      .overline {
+        display: inline-block;
+        border-top: 1px solid currentColor;
+        line-height: 1;
+        padding-top: 0.02em;
+      }
+
       .topbar {
         display: flex;
         align-items: center;
@@ -327,10 +383,12 @@
 
       .data-panel {
         min-width: 0;
+        overflow: hidden;
         padding: 18px;
       }
 
       .table-wrap {
+        max-width: 100%;
         overflow-x: auto;
         border: 1px solid var(--line);
         border-radius: 8px;
@@ -725,27 +783,27 @@
             </div>
             <div class="field-grid">
               <label class="field">
-                <span>ρ <small>kg/m³</small></span>
+                <span><span class="math"><span class="var">ρ</span></span> <small><span class="unit">kg·m<sup>-3</sup></span></small></span>
                 <input id="rho" type="number" step="0.1" value="1000" />
               </label>
               <label class="field">
-                <span>g <small>m/s²</small></span>
+                <span><span class="math"><span class="var">g</span></span> <small><span class="unit">m·s<sup>-2</sup></span></small></span>
                 <input id="gravity" type="number" step="0.01" value="9.80" />
               </label>
               <label class="field">
-                <span>K <small>mV/N</small></span>
+                <span><span class="math"><span class="var">K</span></span> <small><span class="unit">mV·N<sup>-1</sup></span></small></span>
                 <input id="instrumentK" type="number" step="0.01" value="314.29" />
               </label>
               <label class="field">
-                <span>kp</span>
+                <span class="math"><span class="var">k</span><sub class="var">p</sub></span>
                 <input id="coverageFactorInput" type="number" step="0.01" value="2" />
               </label>
               <label class="field">
-                <span>L <small>m</small></span>
+                <span><span class="math"><span class="var">L</span></span> <small><span class="unit">m</span></small></span>
                 <input id="frameWidth" type="number" step="0.001" value="0.036" />
               </label>
               <label class="field">
-                <span>d <small>m</small></span>
+                <span><span class="math"><span class="var">d</span></span> <small><span class="unit">m</span></small></span>
                 <input id="filmThickness" type="number" step="0.00001" value="0.00014" />
               </label>
             </div>
@@ -757,15 +815,15 @@
             </div>
             <div class="field-grid">
               <label class="field">
-                <span>ΔU1 <small>mV</small></span>
+                <span><span class="math"><span class="var">δ</span>(<span class="var">U</span><sub class="roman">1</sub>)</span> <small><span class="unit">mV</span></small></span>
                 <input id="deltaU1" type="number" step="0.001" value="0.01" />
               </label>
               <label class="field">
-                <span>ΔU2 <small>mV</small></span>
+                <span><span class="math"><span class="var">δ</span>(<span class="var">U</span><sub class="roman">2</sub>)</span> <small><span class="unit">mV</span></small></span>
                 <input id="deltaU2" type="number" step="0.001" value="0.01" />
               </label>
               <label class="field">
-                <span>Δh <small>m</small></span>
+                <span><span class="math"><span class="var">δ</span>(<span class="var">h</span>)</span> <small><span class="unit">m</span></small></span>
                 <input id="deltaH" type="number" step="0.000001" value="0.00001" />
               </label>
             </div>
@@ -775,8 +833,8 @@
             <div class="section-heading">
               <h2>理论表达式</h2>
             </div>
-            <p id="formulaText">γ = (U1 - U2)/(2KL) - ρgdh/2</p>
-            <p class="muted">A 类不确定度由重复测量计算，B 类不确定度按仪器分度值除以 √3。</p>
+            <p id="formulaText" class="formula-display"><span class="math math-inline"><span class="var">γ</span> = (<span class="var">U</span><sub class="roman">1</sub> − <span class="var">U</span><sub class="roman">2</sub>)/(2<span class="var">K</span><span class="var">L</span>) − <span class="var">ρ</span><span class="var">g</span><span class="var">d</span><span class="var">h</span>/2</span></p>
+            <p class="muted">A 类不确定度由重复测量计算，B 类不确定度按仪器分度值除以 <span class="math math-inline"><span class="op">√</span>3</span>。</p>
           </section>
         </aside>
 
@@ -784,7 +842,7 @@
           <div class="section-heading">
             <div>
               <h2>多次测量数据</h2>
-              <p>输入每次测量的 U1、U2 和 h，网页按平均读数计算 γ，并按偏导传播合成不确定度。</p>
+              <p>输入每次测量的 <span class="math math-inline"><span class="var">U</span><sub class="roman">1</sub></span>、<span class="math math-inline"><span class="var">U</span><sub class="roman">2</sub></span> 和 <span class="math math-inline"><span class="var">h</span></span>，网页按平均读数计算 <span class="math math-inline"><span class="var">γ</span></span>，并按偏导传播合成不确定度。</p>
             </div>
             <div class="inline-actions">
               <button id="addRowBtn" class="secondary">添加一行</button>
@@ -797,10 +855,10 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>U1 / mV</th>
-                  <th>U2 / mV</th>
-                  <th>h / m</th>
-                  <th>γi / N·m⁻¹</th>
+                  <th><span class="math"><span class="var">U</span><sub class="roman">1</sub></span>（<span class="unit">mV</span>）</th>
+                  <th><span class="math"><span class="var">U</span><sub class="roman">2</sub></span>（<span class="unit">mV</span>）</th>
+                  <th><span class="math"><span class="var">h</span></span>（<span class="unit">m</span>）</th>
+                  <th><span class="math"><span class="var">γ</span><sub class="var">i</sub></span>（<span class="unit">N·m<sup>-1</sup></span>）</th>
                   <th></th>
                 </tr>
               </thead>
@@ -816,11 +874,11 @@
 
           <div class="calculation-grid">
             <div>
-              <span>U1 平均值</span>
+              <span><span class="math"><span class="var">U</span><sub class="roman">1</sub></span> 平均值</span>
               <strong id="u1Average">--</strong>
             </div>
             <div>
-              <span>U2 平均值</span>
+              <span><span class="math"><span class="var">U</span><sub class="roman">2</sub></span> 平均值</span>
               <strong id="u2Average">--</strong>
             </div>
             <div>
@@ -828,11 +886,11 @@
               <strong id="hAverage">--</strong>
             </div>
             <div>
-              <span>uγ 标准不确定度</span>
+              <span><span class="math"><span class="var">u</span><sub class="roman">c</sub>(<span class="var">γ</span>)</span> 标准不确定度</span>
               <strong id="standardGammaUncertainty">--</strong>
             </div>
             <div>
-              <span>Uγ 扩展不确定度</span>
+              <span><span class="math"><span class="var">U</span><sub class="var">p</sub>(<span class="var">γ</span>)</span> 扩展不确定度</span>
               <strong id="expandedGammaUncertainty">--</strong>
             </div>
             <div>
@@ -845,7 +903,7 @@
             <div class="section-heading">
               <div>
                 <h2>计算展开</h2>
-                <p id="centerFormula">γ = (U1 - U2)/(2KL) - ρgdh/2</p>
+                <p id="centerFormula" class="formula-display"><span class="math math-inline"><span class="var">γ</span> = (<span class="var">U</span><sub class="roman">1</sub> − <span class="var">U</span><sub class="roman">2</sub>)/(2<span class="var">K</span><span class="var">L</span>) − <span class="var">ρ</span><span class="var">g</span><span class="var">d</span><span class="var">h</span>/2</span></p>
               </div>
             </div>
             <ol id="calculationSteps"></ol>
@@ -864,15 +922,15 @@
               <h2>各测量量不确定度</h2>
             </div>
             <dl>
-              <div><dt>uA(U1)</dt><dd id="uA1">--</dd></div>
-              <div><dt>uB(U1)</dt><dd id="uB1">--</dd></div>
-              <div><dt>u(U1)</dt><dd id="uU1">--</dd></div>
-              <div><dt>uA(U2)</dt><dd id="uA2">--</dd></div>
-              <div><dt>uB(U2)</dt><dd id="uB2">--</dd></div>
-              <div><dt>u(U2)</dt><dd id="uU2">--</dd></div>
-              <div><dt>uA(h)</dt><dd id="uAh">--</dd></div>
-              <div><dt>uB(h)</dt><dd id="uBh">--</dd></div>
-              <div><dt>u(h)</dt><dd id="uH">--</dd></div>
+              <div><dt><span class="math"><span class="var">u</span><sub class="roman">A</sub>(<span class="var">U</span><sub class="roman">1</sub>)</span></dt><dd id="uA1">--</dd></div>
+              <div><dt><span class="math"><span class="var">u</span><sub class="roman">B</sub>(<span class="var">U</span><sub class="roman">1</sub>)</span></dt><dd id="uB1">--</dd></div>
+              <div><dt><span class="math"><span class="var">u</span>(<span class="var">U</span><sub class="roman">1</sub>)</span></dt><dd id="uU1">--</dd></div>
+              <div><dt><span class="math"><span class="var">u</span><sub class="roman">A</sub>(<span class="var">U</span><sub class="roman">2</sub>)</span></dt><dd id="uA2">--</dd></div>
+              <div><dt><span class="math"><span class="var">u</span><sub class="roman">B</sub>(<span class="var">U</span><sub class="roman">2</sub>)</span></dt><dd id="uB2">--</dd></div>
+              <div><dt><span class="math"><span class="var">u</span>(<span class="var">U</span><sub class="roman">2</sub>)</span></dt><dd id="uU2">--</dd></div>
+              <div><dt><span class="math"><span class="var">u</span><sub class="roman">A</sub>(<span class="var">h</span>)</span></dt><dd id="uAh">--</dd></div>
+              <div><dt><span class="math"><span class="var">u</span><sub class="roman">B</sub>(<span class="var">h</span>)</span></dt><dd id="uBh">--</dd></div>
+              <div><dt><span class="math"><span class="var">u</span>(<span class="var">h</span>)</span></dt><dd id="uH">--</dd></div>
             </dl>
           </section>
 
@@ -881,10 +939,10 @@
               <h2>偏导与传播</h2>
             </div>
             <dl>
-              <div><dt>∂γ/∂U1</dt><dd id="partialU1">--</dd></div>
-              <div><dt>∂γ/∂U2</dt><dd id="partialU2">--</dd></div>
-              <div><dt>∂γ/∂h</dt><dd id="partialH">--</dd></div>
-              <div><dt>kp</dt><dd id="kpValue">--</dd></div>
+              <div><dt><span class="math"><span class="op">∂</span><span class="var">γ</span>/<span class="op">∂</span><span class="var">U</span><sub class="roman">1</sub></span></dt><dd id="partialU1">--</dd></div>
+              <div><dt><span class="math"><span class="op">∂</span><span class="var">γ</span>/<span class="op">∂</span><span class="var">U</span><sub class="roman">2</sub></span></dt><dd id="partialU2">--</dd></div>
+              <div><dt><span class="math"><span class="op">∂</span><span class="var">γ</span>/<span class="op">∂</span><span class="var">h</span></span></dt><dd id="partialH">--</dd></div>
+              <div><dt><span class="math"><span class="var">k</span><sub class="var">p</sub></span></dt><dd id="kpValue">--</dd></div>
             </dl>
           </section>
         </aside>
@@ -902,6 +960,34 @@
     </div>
 
     <script>
+      const RHO_SYMBOL = '<span class="var">ρ</span>';
+      const G_SYMBOL = '<span class="var">g</span>';
+      const K_SYMBOL = '<span class="var">K</span>';
+      const L_SYMBOL = '<span class="var">L</span>';
+      const D_SYMBOL = '<span class="var">d</span>';
+      const H_SYMBOL = '<span class="var">h</span>';
+      const GAMMA_SYMBOL = '<span class="var">γ</span>';
+      const U1_SYMBOL = '<span class="var">U</span><sub class="roman">1</sub>';
+      const U2_SYMBOL = '<span class="var">U</span><sub class="roman">2</sub>';
+      const UC_GAMMA_SYMBOL = '<span class="var">u</span><sub class="roman">c</sub>(<span class="var">γ</span>)';
+      const UP_SYMBOL = '<span class="var">U</span><sub class="var">p</sub>';
+      const KP_SYMBOL = '<span class="var">k</span><sub class="var">p</sub>';
+      const U1_HTML = `<span class="math math-inline">${U1_SYMBOL}</span>`;
+      const U2_HTML = `<span class="math math-inline">${U2_SYMBOL}</span>`;
+      const H_HTML = `<span class="math math-inline">${H_SYMBOL}</span>`;
+      const GAMMA_HTML = `<span class="math math-inline">${GAMMA_SYMBOL}</span>`;
+      const UC_GAMMA_HTML = `<span class="math math-inline">${UC_GAMMA_SYMBOL}</span>`;
+      const UP_HTML = `<span class="math math-inline">${UP_SYMBOL}</span>`;
+      const KP_HTML = `<span class="math math-inline">${KP_SYMBOL}</span>`;
+      const UNIT_VOLTAGE_HTML = '<span class="unit">mV</span>';
+      const UNIT_LENGTH_HTML = '<span class="unit">m</span>';
+      const UNIT_MILLIMETER_HTML = '<span class="unit">mm</span>';
+      const UNIT_GAMMA_HTML = '<span class="unit">N·m<sup>-1</sup></span>';
+      const UNIT_DENSITY_HTML = '<span class="unit">kg·m<sup>-3</sup></span>';
+      const UNIT_ACCELERATION_HTML = '<span class="unit">m·s<sup>-2</sup></span>';
+      const UNIT_SENSITIVITY_HTML = '<span class="unit">mV·N<sup>-1</sup></span>';
+      const GAMMA_FORMULA_HTML = `<span class="math math-inline">${GAMMA_SYMBOL} = (${U1_SYMBOL} − ${U2_SYMBOL})/(2${K_SYMBOL}${L_SYMBOL}) − ${RHO_SYMBOL}${G_SYMBOL}${D_SYMBOL}${H_SYMBOL}/2</span>`;
+
       // 题目配置区
       const QUIZ_QUESTIONS = [
         {
@@ -929,18 +1015,28 @@
             "A 类评定采用统计法（多次测量数据计算）；B 类评定采用非统计法（仪器允差、校准数据、经验）；二者量纲一致，可通过方和根法合成。",
         },
         {
-          stem: "游标卡尺最大允差 ±0.02 mm，误差服从均匀（矩形）分布，其 B 类标准不确定度为？",
-          options: ["0.02/√3 mm", "0.02/3 mm", "0.02/√6 mm", "0.02 mm"],
+          stem: `游标卡尺最大允差 <span class="math math-inline"><span class="op">±</span><span class="number">0.02</span> ${UNIT_MILLIMETER_HTML}</span>，误差服从均匀（矩形）分布，其 B 类标准不确定度为？`,
+          options: [
+            `<span class="math math-inline"><span class="number">0.02</span>/<span class="op">√</span>3 ${UNIT_MILLIMETER_HTML}</span>`,
+            `<span class="math math-inline"><span class="number">0.02</span>/3 ${UNIT_MILLIMETER_HTML}</span>`,
+            `<span class="math math-inline"><span class="number">0.02</span>/<span class="op">√</span>6 ${UNIT_MILLIMETER_HTML}</span>`,
+            `<span class="math math-inline"><span class="number">0.02</span> ${UNIT_MILLIMETER_HTML}</span>`,
+          ],
           answer: "A",
           explanation:
-            "均匀分布区间半宽 a = 0.02 mm，标准不确定度计算公式为 u = a/√3；正态分布对应除以 3，三角分布对应除以 √6。",
+            `均匀分布区间半宽 <span class="math math-inline"><span class="var">a</span> = <span class="number">0.02</span> ${UNIT_MILLIMETER_HTML}</span>，标准不确定度计算公式为 <span class="math math-inline"><span class="var">u</span> = <span class="var">a</span>/<span class="op">√</span>3</span>；正态分布对应除以 3，三角分布对应除以 <span class="math math-inline"><span class="op">√</span>6</span>。`,
         },
         {
-          stem: "合成标准不确定度 uc 与扩展不确定度 Up 的关系，正确的是？",
-          options: ["uc = kp·Up", "Up = kp·uc", "Up = uc", "Up = uc²"],
+          stem: `合成标准不确定度 ${UC_GAMMA_HTML} 与扩展不确定度 ${UP_HTML} 的关系，正确的是？`,
+          options: [
+            `<span class="math math-inline">${UC_GAMMA_SYMBOL} = ${KP_SYMBOL}·${UP_SYMBOL}</span>`,
+            `<span class="math math-inline">${UP_SYMBOL} = ${KP_SYMBOL}·<span class="var">u</span><sub class="roman">c</sub></span>`,
+            `<span class="math math-inline">${UP_SYMBOL} = <span class="var">u</span><sub class="roman">c</sub></span>`,
+            `<span class="math math-inline">${UP_SYMBOL} = <span class="var">u</span><sub class="roman">c</sub><sup class="roman">2</sup></span>`,
+          ],
           answer: "B",
           explanation:
-            "扩展不确定度由合成标准不确定度乘以对应置信水平的包含因子 kp 得到，用于表达具有指定置信概率的测量结果区间。",
+            `扩展不确定度由合成标准不确定度乘以对应置信水平的包含因子 ${KP_HTML} 得到，即 <span class="math math-inline">${UP_SYMBOL} = ${KP_SYMBOL}·<span class="var">u</span><sub class="roman">c</sub></span>，用于表达具有指定置信概率的测量结果区间。`,
         },
         {
           stem: "关于新版国标中测量结果与不确定度的修约规范，下列说法正确的是？",
@@ -1121,20 +1217,30 @@
         return value.toFixed(digits);
       }
 
+      function formatScalar(value, digits = 6) {
+        return Number.isFinite(value) ? `<span class="math number">${formatNumber(value, digits)}</span>` : "--";
+      }
+
+      function formatWithUnit(value, digits, unitHtml) {
+        return Number.isFinite(value)
+          ? `<span class="math"><span class="number">${formatNumber(value, digits)}</span> ${unitHtml}</span>`
+          : "--";
+      }
+
       function formatVoltage(value) {
-        return Number.isFinite(value) ? `${formatNumber(value, 5)} mV` : "--";
+        return formatWithUnit(value, 5, UNIT_VOLTAGE_HTML);
       }
 
       function formatLength(value) {
-        return Number.isFinite(value) ? `${formatNumber(value, 6)} m` : "--";
+        return formatWithUnit(value, 6, UNIT_LENGTH_HTML);
       }
 
       function formatGamma(value) {
-        return Number.isFinite(value) ? `${formatNumber(value, 6)} N/m` : "--";
+        return formatWithUnit(value, 6, UNIT_GAMMA_HTML);
       }
 
       function formatGammaCompact(value) {
-        return Number.isFinite(value) ? `${formatNumber(value, 4)} N/m` : "--";
+        return formatWithUnit(value, 4, UNIT_GAMMA_HTML);
       }
 
       function formatInterval(meanValue, expanded) {
@@ -1241,7 +1347,7 @@
           standardGammaUncertainty,
           expandedGammaUncertainty,
           rowGammas: new Map(validRows.map((row) => [row.rowIndex, gammaValue(params, row.u1, row.u2, row.h)])),
-          formula: "γ = (U1 - U2)/(2KL) - ρgdh/2",
+          formula: GAMMA_FORMULA_HTML,
         };
       }
 
@@ -1268,7 +1374,7 @@
           standardGammaUncertainty: NaN,
           expandedGammaUncertainty: NaN,
           rowGammas: new Map(),
-          formula: "γ = (U1 - U2)/(2KL) - ρgdh/2",
+          formula: GAMMA_FORMULA_HTML,
         };
       }
 
@@ -1281,7 +1387,7 @@
                 <td><input type="number" step="0.001" value="${row.u1}" data-field="u1" data-index="${index}" aria-label="第${index + 1}行 U1" /></td>
                 <td><input type="number" step="0.001" value="${row.u2}" data-field="u2" data-index="${index}" aria-label="第${index + 1}行 U2" /></td>
                 <td><input type="number" step="0.00001" value="${row.h}" data-field="h" data-index="${index}" aria-label="第${index + 1}行 h" /></td>
-                <td class="force-cell">${formatNumber(result.rowGammas.get(index), 6)}</td>
+                <td class="force-cell">${formatScalar(result.rowGammas.get(index), 6)}</td>
                 <td><button class="row-delete" data-delete="${index}" aria-label="删除第${index + 1}行">×</button></td>
               </tr>
             `,
@@ -1308,48 +1414,48 @@
       function updateText(result) {
         const finalText =
           Number.isFinite(result.gammaAverage) && Number.isFinite(result.expandedGammaUncertainty)
-            ? `${formatGamma(result.gammaAverage)} ± ${formatGamma(result.expandedGammaUncertainty)}`
+            ? `${formatGamma(result.gammaAverage)} <span class="math op">±</span> ${formatGamma(result.expandedGammaUncertainty)}`
             : "--";
         const intervalText =
           Number.isFinite(result.gammaAverage) && Number.isFinite(result.expandedGammaUncertainty)
             ? `置信区间：${formatInterval(result.gammaAverage, result.expandedGammaUncertainty)}`
             : "等待有效数据";
-        $("centerGamma").textContent = finalText;
-        $("centerInterval").textContent = intervalText;
-        $("finalGamma").textContent = finalText;
-        $("finalInterval").textContent = intervalText;
-        $("u1Average").textContent = formatVoltage(result.u1Average);
-        $("u2Average").textContent = formatVoltage(result.u2Average);
-        $("hAverage").textContent = formatLength(result.hAverage);
-        $("standardGammaUncertainty").textContent = formatGamma(result.standardGammaUncertainty);
-        $("expandedGammaUncertainty").textContent = formatGamma(result.expandedGammaUncertainty);
+        $("centerGamma").innerHTML = finalText;
+        $("centerInterval").innerHTML = intervalText;
+        $("finalGamma").innerHTML = finalText;
+        $("finalInterval").innerHTML = intervalText;
+        $("u1Average").innerHTML = formatVoltage(result.u1Average);
+        $("u2Average").innerHTML = formatVoltage(result.u2Average);
+        $("hAverage").innerHTML = formatLength(result.hAverage);
+        $("standardGammaUncertainty").innerHTML = formatGamma(result.standardGammaUncertainty);
+        $("expandedGammaUncertainty").innerHTML = formatGamma(result.expandedGammaUncertainty);
         $("repeatCount").textContent = result.validRows.length ? String(result.validRows.length) : "--";
-        $("formulaText").textContent = result.formula;
-        $("centerFormula").textContent = result.formula;
-        $("uA1").textContent = formatVoltage(result.uA1);
-        $("uB1").textContent = formatVoltage(result.uB1);
-        $("uU1").textContent = formatVoltage(result.uU1);
-        $("uA2").textContent = formatVoltage(result.uA2);
-        $("uB2").textContent = formatVoltage(result.uB2);
-        $("uU2").textContent = formatVoltage(result.uU2);
-        $("uAh").textContent = formatLength(result.uAh);
-        $("uBh").textContent = formatLength(result.uBh);
-        $("uH").textContent = formatLength(result.uH);
-        $("partialU1").textContent = formatNumber(result.partialU1, 8);
-        $("partialU2").textContent = formatNumber(result.partialU2, 8);
-        $("partialH").textContent = formatNumber(result.partialH, 6);
-        $("kpValue").textContent = formatNumber(result.params.coverageFactor, 3);
+        $("formulaText").innerHTML = result.formula;
+        $("centerFormula").innerHTML = result.formula;
+        $("uA1").innerHTML = formatVoltage(result.uA1);
+        $("uB1").innerHTML = formatVoltage(result.uB1);
+        $("uU1").innerHTML = formatVoltage(result.uU1);
+        $("uA2").innerHTML = formatVoltage(result.uA2);
+        $("uB2").innerHTML = formatVoltage(result.uB2);
+        $("uU2").innerHTML = formatVoltage(result.uU2);
+        $("uAh").innerHTML = formatLength(result.uAh);
+        $("uBh").innerHTML = formatLength(result.uBh);
+        $("uH").innerHTML = formatLength(result.uH);
+        $("partialU1").innerHTML = formatScalar(result.partialU1, 8);
+        $("partialU2").innerHTML = formatScalar(result.partialU2, 8);
+        $("partialH").innerHTML = formatScalar(result.partialH, 6);
+        $("kpValue").innerHTML = formatScalar(result.params.coverageFactor, 3);
       }
 
       function renderCalculationSteps(result) {
         const steps = [
-          `U1 平均值 = ${formatVoltage(result.u1Average)}，U2 平均值 = ${formatVoltage(result.u2Average)}，h 平均值 = ${formatLength(result.hAverage)}`,
-          `u(U1) = √[uA(U1)² + uB(U1)²] = ${formatVoltage(result.uU1)}`,
-          `u(U2) = √[uA(U2)² + uB(U2)²] = ${formatVoltage(result.uU2)}`,
-          `u(h) = √[uA(h)² + uB(h)²] = ${formatLength(result.uH)}`,
-          `∂γ/∂U1 = ${formatNumber(result.partialU1, 8)}，∂γ/∂U2 = ${formatNumber(result.partialU2, 8)}，∂γ/∂h = ${formatNumber(result.partialH, 6)}`,
-          `uγ = √[(∂γ/∂U1·uU1)² + (∂γ/∂U2·uU2)² + (∂γ/∂h·uh)²] = ${formatGamma(result.standardGammaUncertainty)}`,
-          `Uγ = kp·uγ = ${formatGamma(result.expandedGammaUncertainty)}`,
+          `${U1_HTML} 平均值 = ${formatVoltage(result.u1Average)}，${U2_HTML} 平均值 = ${formatVoltage(result.u2Average)}，${H_HTML} 平均值 = ${formatLength(result.hAverage)}`,
+          `<span class="math math-inline"><span class="var">u</span>(${U1_SYMBOL}) = <span class="op">√</span>[<span class="var">u</span><sub class="roman">A</sub>(${U1_SYMBOL})<sup class="roman">2</sup> + <span class="var">u</span><sub class="roman">B</sub>(${U1_SYMBOL})<sup class="roman">2</sup>]</span> = ${formatVoltage(result.uU1)}`,
+          `<span class="math math-inline"><span class="var">u</span>(${U2_SYMBOL}) = <span class="op">√</span>[<span class="var">u</span><sub class="roman">A</sub>(${U2_SYMBOL})<sup class="roman">2</sup> + <span class="var">u</span><sub class="roman">B</sub>(${U2_SYMBOL})<sup class="roman">2</sup>]</span> = ${formatVoltage(result.uU2)}`,
+          `<span class="math math-inline"><span class="var">u</span>(${H_SYMBOL}) = <span class="op">√</span>[<span class="var">u</span><sub class="roman">A</sub>(${H_SYMBOL})<sup class="roman">2</sup> + <span class="var">u</span><sub class="roman">B</sub>(${H_SYMBOL})<sup class="roman">2</sup>]</span> = ${formatLength(result.uH)}`,
+          `<span class="math math-inline"><span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${U1_SYMBOL}</span> = ${formatScalar(result.partialU1, 8)}，<span class="math math-inline"><span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${U2_SYMBOL}</span> = ${formatScalar(result.partialU2, 8)}，<span class="math math-inline"><span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${H_SYMBOL}</span> = ${formatScalar(result.partialH, 6)}`,
+          `<span class="math math-inline">${UC_GAMMA_SYMBOL} = <span class="op">√</span>[(<span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${U1_SYMBOL}·<span class="var">u</span>(${U1_SYMBOL}))<sup class="roman">2</sup> + (<span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${U2_SYMBOL}·<span class="var">u</span>(${U2_SYMBOL}))<sup class="roman">2</sup> + (<span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${H_SYMBOL}·<span class="var">u</span>(${H_SYMBOL}))<sup class="roman">2</sup>]</span> = ${formatGamma(result.standardGammaUncertainty)}`,
+          `<span class="math math-inline">${UP_SYMBOL} = ${KP_SYMBOL}·${UC_GAMMA_SYMBOL}</span> = ${formatGamma(result.expandedGammaUncertainty)}`,
         ];
         $("calculationSteps").innerHTML = steps.map((step) => `<li>${step}</li>`).join("");
       }
@@ -1361,56 +1467,56 @@
             <h3>实验常数</h3>
             <table class="mini-table">
               <tbody>
-                <tr><td>ρ</td><td>${formatNumber(params.rho, 2)} kg/m³</td></tr>
-                <tr><td>g</td><td>${formatNumber(params.gravity, 2)} m/s²</td></tr>
-                <tr><td>K</td><td>${formatNumber(params.instrumentK, 2)} mV/N</td></tr>
-                <tr><td>L</td><td>${formatNumber(params.frameWidth, 6)} m</td></tr>
-                <tr><td>d</td><td>${formatNumber(params.filmThickness, 6)} m</td></tr>
-                <tr><td>kp</td><td>${formatNumber(params.coverageFactor, 3)}</td></tr>
+                <tr><td><span class="math">${RHO_SYMBOL}</span></td><td>${formatWithUnit(params.rho, 2, UNIT_DENSITY_HTML)}</td></tr>
+                <tr><td><span class="math">${G_SYMBOL}</span></td><td>${formatWithUnit(params.gravity, 2, UNIT_ACCELERATION_HTML)}</td></tr>
+                <tr><td><span class="math">${K_SYMBOL}</span></td><td>${formatWithUnit(params.instrumentK, 2, UNIT_SENSITIVITY_HTML)}</td></tr>
+                <tr><td><span class="math">${L_SYMBOL}</span></td><td>${formatLength(params.frameWidth)}</td></tr>
+                <tr><td><span class="math">${D_SYMBOL}</span></td><td>${formatLength(params.filmThickness)}</td></tr>
+                <tr><td>${KP_HTML}</td><td>${formatScalar(params.coverageFactor, 3)}</td></tr>
               </tbody>
             </table>
           </article>
           <article class="report-block">
             <h3>平均读数</h3>
             <ul>
-              <li>U1avg = ${formatVoltage(result.u1Average)}</li>
-              <li>U2avg = ${formatVoltage(result.u2Average)}</li>
-              <li>havg = ${formatLength(result.hAverage)}</li>
-              <li>n = ${result.validRows.length || "--"}</li>
+              <li><span class="math"><span class="var">U</span><sub class="roman">1,avg</sub></span> = ${formatVoltage(result.u1Average)}</li>
+              <li><span class="math"><span class="var">U</span><sub class="roman">2,avg</sub></span> = ${formatVoltage(result.u2Average)}</li>
+              <li><span class="math"><span class="var">h</span><sub class="roman">avg</sub></span> = ${formatLength(result.hAverage)}</li>
+              <li><span class="math"><span class="var">n</span></span> = ${result.validRows.length || "--"}</li>
             </ul>
           </article>
           <article class="report-block">
             <h3>合成标准不确定度</h3>
             <ul>
-              <li>u(U1) = ${formatVoltage(result.uU1)}</li>
-              <li>u(U2) = ${formatVoltage(result.uU2)}</li>
-              <li>u(h) = ${formatLength(result.uH)}</li>
-              <li>uγ = ${formatGamma(result.standardGammaUncertainty)}</li>
+              <li><span class="math"><span class="var">u</span>(${U1_SYMBOL})</span> = ${formatVoltage(result.uU1)}</li>
+              <li><span class="math"><span class="var">u</span>(${U2_SYMBOL})</span> = ${formatVoltage(result.uU2)}</li>
+              <li><span class="math"><span class="var">u</span>(${H_SYMBOL})</span> = ${formatLength(result.uH)}</li>
+              <li>${UC_GAMMA_HTML} = ${formatGamma(result.standardGammaUncertainty)}</li>
             </ul>
           </article>
           <article class="report-block">
             <h3>最终结果</h3>
             <ul>
-              <li>γ平均值 = ${formatGamma(result.gammaAverage)}</li>
-              <li>Uγ(P=0.95) = ${formatGamma(result.expandedGammaUncertainty)}</li>
-              <li>γ = (${formatGammaCompact(result.gammaAverage)} ± ${formatGammaCompact(result.expandedGammaUncertainty)})</li>
+              <li>${GAMMA_HTML} 平均值 = ${formatGamma(result.gammaAverage)}</li>
+              <li>${UP_HTML}(<span class="math"><span class="var">p</span> = <span class="number">0.95</span></span>) = ${formatGamma(result.expandedGammaUncertainty)}</li>
+              <li>${GAMMA_HTML} = (${formatGammaCompact(result.gammaAverage)} <span class="math op">±</span> ${formatGammaCompact(result.expandedGammaUncertainty)})</li>
             </ul>
           </article>
           <article class="report-block wide">
             <h3>公式与偏导</h3>
             <ul>
-              <li>γ = (U1 - U2)/(2KL) - ρgdh/2</li>
-              <li>∂γ/∂U1 = ${formatNumber(result.partialU1, 8)}</li>
-              <li>∂γ/∂U2 = ${formatNumber(result.partialU2, 8)}</li>
-              <li>∂γ/∂h = ${formatNumber(result.partialH, 6)}</li>
+              <li>${GAMMA_FORMULA_HTML}</li>
+              <li><span class="math"><span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${U1_SYMBOL}</span> = ${formatScalar(result.partialU1, 8)}</li>
+              <li><span class="math"><span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${U2_SYMBOL}</span> = ${formatScalar(result.partialU2, 8)}</li>
+              <li><span class="math"><span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${H_SYMBOL}</span> = ${formatScalar(result.partialH, 6)}</li>
             </ul>
           </article>
           <article class="report-block wide">
             <h3>实验结论</h3>
             <p>
               按 A 类、B 类不确定度合成并进行偏导传播，最终表面张力系数为
-              <strong>${formatGamma(result.gammaAverage)} ± ${formatGamma(result.expandedGammaUncertainty)}</strong>，
-              置信水平按 kp = ${formatNumber(params.coverageFactor, 3)} 处理。
+              <strong>${formatGamma(result.gammaAverage)} <span class="math op">±</span> ${formatGamma(result.expandedGammaUncertainty)}</strong>，
+              置信水平按 ${KP_HTML} = ${formatScalar(params.coverageFactor, 3)} 处理。
             </p>
           </article>
         `;
