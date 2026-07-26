@@ -1,9 +1,38 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>液体表面张力系数测量实验数据处理</title>
+    <script>
+      window.__typesetMathPending = false;
+      window.MathJax = {
+        tex: {
+          inlineMath: [["\\(", "\\)"]],
+          displayMath: [["\\[", "\\]"]],
+          processEscapes: true,
+        },
+        chtml: {
+          scale: 1,
+          minScale: 0.72,
+          matchFontHeight: false,
+          mtextInheritFont: true,
+          linebreaks: { automatic: true, width: "container" },
+        },
+        options: {
+          enableMenu: false,
+          skipHtmlTags: ["script", "noscript", "style", "textarea", "pre", "code"],
+        },
+        startup: {
+          typeset: false,
+          ready: () => {
+            MathJax.startup.defaultReady();
+            if (window.__typesetMathPending && window.typesetMath) window.typesetMath();
+          },
+        },
+      };
+    </script>
+    <script defer id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     <style>
       :root {
         color-scheme: light;
@@ -105,64 +134,21 @@
         line-height: 1.35;
       }
 
+      mjx-container,
+      mjx-container * {
+        max-width: 100%;
+        font-family: "Times New Roman", "Cambria Math", serif !important;
+      }
+
+      mjx-container {
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0 0.08em;
+        vertical-align: baseline;
+      }
+
       .hidden {
         display: none !important;
-      }
-
-      .math,
-      .unit {
-        display: inline;
-        font-family: "Times New Roman", Times, serif;
-        font-style: normal;
-        letter-spacing: 0;
-        white-space: nowrap;
-      }
-
-      .math-inline {
-        margin: 0 0.25ch;
-      }
-
-      .formula-display {
-        color: var(--primary-dark);
-        font-weight: 800;
-        line-height: 1.45;
-      }
-
-      .var {
-        font-family: "Times New Roman", Times, serif;
-        font-style: italic;
-      }
-
-      .op,
-      .roman,
-      .number,
-      .unit {
-        font-style: normal;
-      }
-
-      .math sub,
-      .math sup,
-      .unit sup {
-        position: relative;
-        vertical-align: baseline;
-        font-size: 70%;
-        line-height: 0;
-      }
-
-      .math sub {
-        bottom: -0.25em;
-      }
-
-      .math sup,
-      .unit sup {
-        top: -0.25em;
-      }
-
-      .overline {
-        display: inline-block;
-        border-top: 1px solid currentColor;
-        line-height: 1;
-        padding-top: 0.02em;
       }
 
       .topbar {
@@ -383,13 +369,16 @@
 
       .data-panel {
         min-width: 0;
-        overflow: hidden;
         padding: 18px;
+        overflow: hidden;
       }
 
       .table-wrap {
+        width: 100%;
         max-width: 100%;
         overflow-x: auto;
+        overflow-y: hidden;
+        contain: inline-size;
         border: 1px solid var(--line);
         border-radius: 8px;
       }
@@ -450,7 +439,7 @@
         background: linear-gradient(180deg, #f3f8ff, #ffffff);
       }
 
-      .calculation-hero span {
+      .calculation-hero > span {
         display: block;
         margin-bottom: 8px;
         color: var(--muted);
@@ -461,8 +450,8 @@
       .calculation-hero strong {
         display: block;
         color: var(--primary-dark);
-        font-size: clamp(28px, 3vw, 42px);
-        line-height: 1.15;
+        font-size: clamp(24px, 2.4vw, 34px);
+        line-height: 1.25;
         letter-spacing: 0;
         font-variant-numeric: tabular-nums;
       }
@@ -471,6 +460,7 @@
         margin: 10px 0 0;
         color: var(--muted);
         font-size: 14px;
+        line-height: 1.55;
       }
 
       .calculation-grid {
@@ -526,57 +516,121 @@
         display: grid;
         gap: 10px;
         margin: 0;
-        padding-left: 22px;
+        padding-left: 20px;
+        line-height: 1.72;
       }
 
-      .calculation-steps li {
+      .formula-display {
+        margin-bottom: 8px;
+        color: var(--primary-dark);
+        font-size: 15px;
+        line-height: 1.6;
+      }
+
+      .report {
+        margin: 0 clamp(16px, 3vw, 36px) 36px;
+        padding: 22px;
+      }
+
+      .report-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .report-block {
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface-soft);
+      }
+
+      .report-block.wide {
+        grid-column: span 2;
+      }
+
+      .report-block h3 {
+        margin-bottom: 10px;
+        color: var(--primary-dark);
+      }
+
+      .report-block ul {
+        display: grid;
+        gap: 8px;
+        margin: 0;
+        padding-left: 18px;
         color: var(--text);
-        font-size: 14px;
+        font-size: 13px;
+        line-height: 1.65;
+      }
+
+      .report-block p {
+        margin: 0;
+        color: var(--text);
+        font-size: 13px;
+        line-height: 1.7;
+      }
+
+      .mini-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .mini-table td {
+        padding: 7px 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 13px;
         line-height: 1.55;
-        font-variant-numeric: tabular-nums;
+        vertical-align: top;
+      }
+
+      .mini-table tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .mini-table td:first-child {
+        width: 42%;
+        color: var(--muted);
       }
 
       .result-hero {
-        padding: 22px 18px;
-        color: #fff;
-        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-        border-radius: 8px 8px 0 0;
+        padding: 18px;
+        border-bottom: 1px solid var(--line);
+        background: #f1f6ff;
       }
 
       .result-hero span {
         display: block;
-        margin-bottom: 9px;
-        color: rgba(255, 255, 255, 0.78);
-        font-size: 13px;
-        font-weight: 700;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
       }
 
       .result-hero strong {
         display: block;
-        font-size: clamp(25px, 3vw, 34px);
-        line-height: 1.18;
-        letter-spacing: 0;
+        color: var(--primary-dark);
+        font-size: 22px;
+        line-height: 1.35;
       }
 
       .result-hero p {
-        margin: 10px 0 0;
-        color: rgba(255, 255, 255, 0.82);
-        line-height: 1.45;
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
       }
 
       .result-list dl {
-        display: grid;
-        gap: 10px;
         margin: 0;
       }
 
       .result-list dl div {
         display: flex;
-        align-items: baseline;
         justify-content: space-between;
         gap: 12px;
-        min-height: 30px;
-        border-bottom: 1px dashed var(--line);
+        padding: 9px 0;
+        border-bottom: 1px solid var(--line);
       }
 
       .result-list dl div:last-child {
@@ -591,78 +645,10 @@
       .result-list dd {
         margin: 0;
         color: var(--primary-dark);
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 800;
         text-align: right;
         font-variant-numeric: tabular-nums;
-      }
-
-      .formula-box p {
-        margin-bottom: 8px;
-        line-height: 1.6;
-      }
-
-      .formula-box #formulaText {
-        color: var(--primary-dark);
-        font-weight: 800;
-      }
-
-      .report {
-        margin: 0 clamp(16px, 3vw, 36px) 34px;
-        padding: 20px;
-      }
-
-      .report-content {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 14px;
-      }
-
-      .report-block {
-        min-width: 0;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 15px;
-        background: var(--surface-soft);
-      }
-
-      .report-block.wide {
-        grid-column: span 2;
-      }
-
-      .report-block h3 {
-        margin-bottom: 10px;
-        color: var(--primary-dark);
-      }
-
-      .report-block p,
-      .report-block li {
-        color: var(--text);
-        font-size: 13px;
-        line-height: 1.65;
-      }
-
-      .report-block ul {
-        padding-left: 18px;
-        margin: 0;
-      }
-
-      .mini-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 13px;
-      }
-
-      .mini-table th,
-      .mini-table td {
-        border-bottom: 1px solid var(--line);
-        padding: 7px 6px;
-        text-align: left;
-        vertical-align: top;
-      }
-
-      .mini-table th {
-        color: var(--primary-dark);
       }
 
       @media (max-width: 1180px) {
@@ -675,18 +661,20 @@
           grid-column: 1 / -1;
         }
 
-        .report-content {
+        .report-grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
       }
 
-      @media (max-width: 820px) {
+      @media (max-width: 760px) {
         .topbar {
-          align-items: flex-start;
           flex-direction: column;
+          align-items: stretch;
+          padding-top: 20px;
         }
 
-        .topbar-actions {
+        .topbar-actions,
+        .inline-actions {
           justify-content: flex-start;
         }
 
@@ -698,15 +686,17 @@
           position: static;
         }
 
+        .field-grid,
         .calculation-grid,
-        .report-content {
+        .report-grid {
           grid-template-columns: 1fr;
         }
 
-        .calculation-grid div,
-        .calculation-grid div:nth-child(3n),
-        .calculation-grid div:nth-last-child(-n + 3) {
+        .calculation-grid div {
           border-right: 0;
+        }
+
+        .calculation-grid div:nth-last-child(-n + 3) {
           border-bottom: 1px solid var(--line);
         }
 
@@ -717,149 +707,132 @@
         .report-block.wide {
           grid-column: auto;
         }
-
-        .section-heading {
-          flex-direction: column;
-        }
-
-        .inline-actions {
-          justify-content: flex-start;
-        }
-      }
-
-      @media (max-width: 520px) {
-        .field-grid {
-          grid-template-columns: 1fr;
-        }
-
-        button {
-          width: 100%;
-        }
-
-        .topbar-actions,
-        .inline-actions {
-          width: 100%;
-        }
       }
     </style>
   </head>
   <body>
     <section id="quizGate" class="quiz-page">
       <header class="topbar">
-        <h1>测量不确定度基础知识考核</h1>
+        <div>
+          <p class="eyebrow">measurement uncertainty gate</p>
+          <h1>液体表面张力系数测量实验数据处理</h1>
+        </div>
       </header>
 
       <div class="quiz-intro">
-        <p>请完成以下 5 道单选题，全部作答后方可提交。提交后将自动显示答案与解析，完成后即可进入实验数据处理工具。</p>
-        <p>考核依据：GB/T 27418-2017《测量不确定度评定和表示》</p>
+        进入实验数据处理前，请先完成测量不确定度基础问答。提交后网页会展示答案与解析，再进入数据处理工具。
       </div>
 
       <div id="questionList" class="question-list"></div>
 
       <section class="quiz-actions panel">
-        <div id="scoreText" class="score-text hidden"></div>
+        <p id="scoreText" class="score-text hidden"></p>
         <button id="submitQuizBtn" type="button" disabled>提交答卷</button>
         <button id="enterToolBtn" class="enter-tool-btn hidden" type="button">进入实验数据处理工具</button>
       </section>
     </section>
 
-    <div id="mainTool" class="hidden">
+    <main id="mainTool" class="hidden">
       <header class="topbar">
         <div>
-          <p class="eyebrow">Physics Competition Lab Tool</p>
+          <p class="eyebrow">surface tension laboratory tool</p>
           <h1>液体表面张力系数测量实验数据处理</h1>
         </div>
         <div class="topbar-actions">
-          <button id="loadSampleBtn" class="secondary">示例数据</button>
-          <button id="resetBtn" class="ghost">重置</button>
+          <button id="loadSampleBtn" class="secondary" type="button">载入示例数据</button>
+          <button id="resetBtn" class="ghost" type="button">重置</button>
         </div>
       </header>
 
-      <main class="workspace">
+      <section class="workspace">
         <aside class="panel parameters">
           <section class="section">
             <div class="section-heading">
-              <h2>全局常数</h2>
+              <div>
+                <h2>张力修正输入</h2>
+                <p>常量、灵敏度与置信因子</p>
+              </div>
             </div>
             <div class="field-grid">
               <label class="field">
-                <span><span class="math"><span class="var">ρ</span></span> <small><span class="unit">kg·m<sup>-3</sup></span></small></span>
-                <input id="rho" type="number" step="0.1" value="1000" />
+                <span>\(\rho\) <small>\(\mathrm{kg}\cdot\mathrm{m}^{-3}\)</small></span>
+                <input id="rho" type="number" step="0.01" />
               </label>
               <label class="field">
-                <span><span class="math"><span class="var">g</span></span> <small><span class="unit">m·s<sup>-2</sup></span></small></span>
-                <input id="gravity" type="number" step="0.01" value="9.80" />
+                <span>\(g\) <small>\(\mathrm{m}\cdot\mathrm{s}^{-2}\)</small></span>
+                <input id="gravity" type="number" step="0.01" />
               </label>
               <label class="field">
-                <span><span class="math"><span class="var">K</span></span> <small><span class="unit">mV·N<sup>-1</sup></span></small></span>
-                <input id="instrumentK" type="number" step="0.01" value="314.29" />
+                <span>\(K\) <small>\(\mathrm{mV}\cdot\mathrm{N}^{-1}\)</small></span>
+                <input id="instrumentK" type="number" step="0.01" />
               </label>
               <label class="field">
-                <span class="math"><span class="var">k</span><sub class="var">p</sub></span>
-                <input id="coverageFactorInput" type="number" step="0.01" value="2" />
+                <span>\(k_p\)</span>
+                <input id="coverageFactorInput" type="number" step="0.01" />
               </label>
               <label class="field">
-                <span><span class="math"><span class="var">L</span></span> <small><span class="unit">m</span></small></span>
-                <input id="frameWidth" type="number" step="0.001" value="0.036" />
+                <span>\(L\) <small>\(\mathrm{m}\)</small></span>
+                <input id="frameWidth" type="number" step="0.0001" />
               </label>
               <label class="field">
-                <span><span class="math"><span class="var">d</span></span> <small><span class="unit">m</span></small></span>
-                <input id="filmThickness" type="number" step="0.00001" value="0.00014" />
+                <span>\(d\) <small>\(\mathrm{m}\)</small></span>
+                <input id="filmThickness" type="number" step="0.00001" />
               </label>
             </div>
           </section>
 
           <section class="section">
             <div class="section-heading">
-              <h2>仪器分度值</h2>
+              <div>
+                <h2>仪器分度值</h2>
+                <p>B 类标准不确定度按矩形分布处理</p>
+              </div>
             </div>
             <div class="field-grid">
               <label class="field">
-                <span><span class="math"><span class="var">δ</span>(<span class="var">U</span><sub class="roman">1</sub>)</span> <small><span class="unit">mV</span></small></span>
-                <input id="deltaU1" type="number" step="0.001" value="0.01" />
+                <span>\(\delta(U_1)\) <small>\(\mathrm{mV}\)</small></span>
+                <input id="deltaU1" type="number" step="0.001" />
               </label>
               <label class="field">
-                <span><span class="math"><span class="var">δ</span>(<span class="var">U</span><sub class="roman">2</sub>)</span> <small><span class="unit">mV</span></small></span>
-                <input id="deltaU2" type="number" step="0.001" value="0.01" />
+                <span>\(\delta(U_2)\) <small>\(\mathrm{mV}\)</small></span>
+                <input id="deltaU2" type="number" step="0.001" />
               </label>
               <label class="field">
-                <span><span class="math"><span class="var">δ</span>(<span class="var">h</span>)</span> <small><span class="unit">m</span></small></span>
-                <input id="deltaH" type="number" step="0.000001" value="0.00001" />
+                <span>\(\delta(h)\) <small>\(\mathrm{m}\)</small></span>
+                <input id="deltaH" type="number" step="0.00001" />
               </label>
             </div>
           </section>
 
-          <section class="section formula-box">
-            <div class="section-heading">
-              <h2>理论表达式</h2>
-            </div>
-            <p id="formulaText" class="formula-display"><span class="math math-inline"><span class="var">γ</span> = (<span class="var">U</span><sub class="roman">1</sub> − <span class="var">U</span><sub class="roman">2</sub>)/(2<span class="var">K</span><span class="var">L</span>) − <span class="var">ρ</span><span class="var">g</span><span class="var">d</span><span class="var">h</span>/2</span></p>
-            <p class="muted">A 类不确定度由重复测量计算，B 类不确定度按仪器分度值除以 <span class="math math-inline"><span class="op">√</span>3</span>。</p>
+          <section class="section">
+            <h2>测量模型</h2>
+            <p id="formulaText" class="formula-display">\(\gamma = \frac{U_1 - U_2}{2 K L} - \frac{\rho g d h}{2}\)</p>
+            <p class="muted">A 类不确定度由重复测量计算，B 类不确定度按仪器分度值除以 \(\sqrt{3}\)。</p>
           </section>
         </aside>
 
         <section class="panel data-panel">
           <div class="section-heading">
             <div>
-              <h2>多次测量数据</h2>
-              <p>输入每次测量的 <span class="math math-inline"><span class="var">U</span><sub class="roman">1</sub></span>、<span class="math math-inline"><span class="var">U</span><sub class="roman">2</sub></span> 和 <span class="math math-inline"><span class="var">h</span></span>，网页按平均读数计算 <span class="math math-inline"><span class="var">γ</span></span>，并按偏导传播合成不确定度。</p>
+              <h2>测量数据</h2>
+              <p>输入每次测量的 \(U_1\)、\(U_2\)（U断）和 \(h\)，网页按平均读数计算 \(\gamma\)，并按偏导传播合成不确定度。</p>
             </div>
             <div class="inline-actions">
-              <button id="addRowBtn" class="secondary">添加一行</button>
-              <button id="clearRowsBtn" class="ghost">清空</button>
+              <button id="addRowBtn" class="secondary" type="button">新增行</button>
+              <button id="clearRowsBtn" class="ghost" type="button">清空表格</button>
             </div>
           </div>
 
           <div class="table-wrap">
-            <table class="data-table measurement-table">
+            <table class="data-table">
               <thead>
                 <tr>
-                  <th>#</th>
-                  <th><span class="math"><span class="var">U</span><sub class="roman">1</sub></span>（<span class="unit">mV</span>）</th>
-                  <th><span class="math"><span class="var">U</span><sub class="roman">2</sub></span>（<span class="unit">mV</span>）</th>
-                  <th><span class="math"><span class="var">h</span></span>（<span class="unit">m</span>）</th>
-                  <th><span class="math"><span class="var">γ</span><sub class="var">i</sub></span>（<span class="unit">N·m<sup>-1</sup></span>）</th>
-                  <th></th>
+                  <th>序号</th>
+                  <th>\(U_1\)（\(\mathrm{mV}\)）</th>
+                  <th>\(U_2\) / U断（\(\mathrm{mV}\)）</th>
+                  <th>\(h\)（\(\mathrm{m}\)）</th>
+                  <th>\(\gamma_i\)（\(\mathrm{N}\cdot\mathrm{m}^{-1}\)）</th>
+                  <th>操作</th>
                 </tr>
               </thead>
               <tbody id="measurementBody"></tbody>
@@ -867,128 +840,107 @@
           </div>
 
           <section class="calculation-hero">
-            <span>最终测量结果</span>
+            <span>当前计算结果</span>
             <strong id="centerGamma">--</strong>
             <p id="centerInterval">等待有效数据</p>
+            <p id="centerGammaMilli">--</p>
           </section>
 
-          <div class="calculation-grid">
+          <section class="calculation-grid">
             <div>
-              <span><span class="math"><span class="var">U</span><sub class="roman">1</sub></span> 平均值</span>
+              <span>\(\bar{U}_{1,\mathrm{avg}}\)</span>
               <strong id="u1Average">--</strong>
             </div>
             <div>
-              <span><span class="math"><span class="var">U</span><sub class="roman">2</sub></span> 平均值</span>
+              <span>\(\bar{U}_{2,\mathrm{avg}}\)</span>
               <strong id="u2Average">--</strong>
             </div>
             <div>
-              <span>h 平均值</span>
+              <span>\(\bar{h}_{\mathrm{avg}}\)</span>
               <strong id="hAverage">--</strong>
             </div>
             <div>
-              <span><span class="math"><span class="var">u</span><sub class="roman">c</sub>(<span class="var">γ</span>)</span> 标准不确定度</span>
+              <span>\(u_\mathrm{c}(\gamma)\)</span>
               <strong id="standardGammaUncertainty">--</strong>
             </div>
             <div>
-              <span><span class="math"><span class="var">U</span><sub class="var">p</sub>(<span class="var">γ</span>)</span> 扩展不确定度</span>
+              <span>\(U_p(\gamma)\)</span>
               <strong id="expandedGammaUncertainty">--</strong>
             </div>
             <div>
-              <span>重复次数 n</span>
+              <span>有效组数 \(n\)</span>
               <strong id="repeatCount">--</strong>
             </div>
-          </div>
+          </section>
 
           <section class="calculation-steps">
-            <div class="section-heading">
-              <div>
-                <h2>计算展开</h2>
-                <p id="centerFormula" class="formula-display"><span class="math math-inline"><span class="var">γ</span> = (<span class="var">U</span><sub class="roman">1</sub> − <span class="var">U</span><sub class="roman">2</sub>)/(2<span class="var">K</span><span class="var">L</span>) − <span class="var">ρ</span><span class="var">g</span><span class="var">d</span><span class="var">h</span>/2</span></p>
-              </div>
-            </div>
+            <h2>计算过程</h2>
             <ol id="calculationSteps"></ol>
           </section>
         </section>
 
         <aside class="panel results">
           <section class="result-hero">
-            <span>结果</span>
+            <span>最终表达</span>
             <strong id="finalGamma">--</strong>
             <p id="finalInterval">等待有效数据</p>
           </section>
 
           <section class="section result-list">
-            <div class="section-heading">
-              <h2>各测量量不确定度</h2>
-            </div>
+            <h2>输入量不确定度</h2>
             <dl>
-              <div><dt><span class="math"><span class="var">u</span><sub class="roman">A</sub>(<span class="var">U</span><sub class="roman">1</sub>)</span></dt><dd id="uA1">--</dd></div>
-              <div><dt><span class="math"><span class="var">u</span><sub class="roman">B</sub>(<span class="var">U</span><sub class="roman">1</sub>)</span></dt><dd id="uB1">--</dd></div>
-              <div><dt><span class="math"><span class="var">u</span>(<span class="var">U</span><sub class="roman">1</sub>)</span></dt><dd id="uU1">--</dd></div>
-              <div><dt><span class="math"><span class="var">u</span><sub class="roman">A</sub>(<span class="var">U</span><sub class="roman">2</sub>)</span></dt><dd id="uA2">--</dd></div>
-              <div><dt><span class="math"><span class="var">u</span><sub class="roman">B</sub>(<span class="var">U</span><sub class="roman">2</sub>)</span></dt><dd id="uB2">--</dd></div>
-              <div><dt><span class="math"><span class="var">u</span>(<span class="var">U</span><sub class="roman">2</sub>)</span></dt><dd id="uU2">--</dd></div>
-              <div><dt><span class="math"><span class="var">u</span><sub class="roman">A</sub>(<span class="var">h</span>)</span></dt><dd id="uAh">--</dd></div>
-              <div><dt><span class="math"><span class="var">u</span><sub class="roman">B</sub>(<span class="var">h</span>)</span></dt><dd id="uBh">--</dd></div>
-              <div><dt><span class="math"><span class="var">u</span>(<span class="var">h</span>)</span></dt><dd id="uH">--</dd></div>
+              <div><dt>\(u_\mathrm{A}(U_1)\)</dt><dd id="uA1">--</dd></div>
+              <div><dt>\(u_\mathrm{B}(U_1)\)</dt><dd id="uB1">--</dd></div>
+              <div><dt>\(u(U_1)\)</dt><dd id="uU1">--</dd></div>
+              <div><dt>\(u_\mathrm{A}(U_2)\)</dt><dd id="uA2">--</dd></div>
+              <div><dt>\(u_\mathrm{B}(U_2)\)</dt><dd id="uB2">--</dd></div>
+              <div><dt>\(u(U_2)\)</dt><dd id="uU2">--</dd></div>
+              <div><dt>\(u_\mathrm{A}(h)\)</dt><dd id="uAh">--</dd></div>
+              <div><dt>\(u_\mathrm{B}(h)\)</dt><dd id="uBh">--</dd></div>
+              <div><dt>\(u(h)\)</dt><dd id="uH">--</dd></div>
             </dl>
           </section>
 
           <section class="section result-list">
-            <div class="section-heading">
-              <h2>偏导与传播</h2>
-            </div>
+            <h2>传播系数</h2>
             <dl>
-              <div><dt><span class="math"><span class="op">∂</span><span class="var">γ</span>/<span class="op">∂</span><span class="var">U</span><sub class="roman">1</sub></span></dt><dd id="partialU1">--</dd></div>
-              <div><dt><span class="math"><span class="op">∂</span><span class="var">γ</span>/<span class="op">∂</span><span class="var">U</span><sub class="roman">2</sub></span></dt><dd id="partialU2">--</dd></div>
-              <div><dt><span class="math"><span class="op">∂</span><span class="var">γ</span>/<span class="op">∂</span><span class="var">h</span></span></dt><dd id="partialH">--</dd></div>
-              <div><dt><span class="math"><span class="var">k</span><sub class="var">p</sub></span></dt><dd id="kpValue">--</dd></div>
+              <div><dt>\(\frac{\partial \gamma}{\partial U_1}\)</dt><dd id="partialU1">--</dd></div>
+              <div><dt>\(\frac{\partial \gamma}{\partial U_2}\)</dt><dd id="partialU2">--</dd></div>
+              <div><dt>\(\frac{\partial \gamma}{\partial h}\)</dt><dd id="partialH">--</dd></div>
+              <div><dt>\(k_p\)</dt><dd id="kpValue">--</dd></div>
+              <div><dt>\(u_\mathrm{rel}\)</dt><dd id="relativeStandard">--</dd></div>
+              <div><dt>\(U_\mathrm{rel}\)</dt><dd id="relativeExpanded">--</dd></div>
             </dl>
           </section>
         </aside>
-      </main>
+      </section>
 
-      <section class="report panel">
+      <section class="panel report">
         <div class="section-heading">
           <div>
             <h2>网页实验报告</h2>
-            <p>报告随表格数据实时更新，计算方法对应当前不确定度模板。</p>
+            <p>报告随输入数据实时更新</p>
           </div>
         </div>
-        <div id="reportContent" class="report-content"></div>
+        <div id="reportContent" class="report-grid"></div>
       </section>
-    </div>
+    </main>
 
     <script>
-      const RHO_SYMBOL = '<span class="var">ρ</span>';
-      const G_SYMBOL = '<span class="var">g</span>';
-      const K_SYMBOL = '<span class="var">K</span>';
-      const L_SYMBOL = '<span class="var">L</span>';
-      const D_SYMBOL = '<span class="var">d</span>';
-      const H_SYMBOL = '<span class="var">h</span>';
-      const GAMMA_SYMBOL = '<span class="var">γ</span>';
-      const U1_SYMBOL = '<span class="var">U</span><sub class="roman">1</sub>';
-      const U2_SYMBOL = '<span class="var">U</span><sub class="roman">2</sub>';
-      const UC_GAMMA_SYMBOL = '<span class="var">u</span><sub class="roman">c</sub>(<span class="var">γ</span>)';
-      const UP_SYMBOL = '<span class="var">U</span><sub class="var">p</sub>';
-      const KP_SYMBOL = '<span class="var">k</span><sub class="var">p</sub>';
-      const U1_HTML = `<span class="math math-inline">${U1_SYMBOL}</span>`;
-      const U2_HTML = `<span class="math math-inline">${U2_SYMBOL}</span>`;
-      const H_HTML = `<span class="math math-inline">${H_SYMBOL}</span>`;
-      const GAMMA_HTML = `<span class="math math-inline">${GAMMA_SYMBOL}</span>`;
-      const UC_GAMMA_HTML = `<span class="math math-inline">${UC_GAMMA_SYMBOL}</span>`;
-      const UP_HTML = `<span class="math math-inline">${UP_SYMBOL}</span>`;
-      const KP_HTML = `<span class="math math-inline">${KP_SYMBOL}</span>`;
-      const UNIT_VOLTAGE_HTML = '<span class="unit">mV</span>';
-      const UNIT_LENGTH_HTML = '<span class="unit">m</span>';
-      const UNIT_MILLIMETER_HTML = '<span class="unit">mm</span>';
-      const UNIT_GAMMA_HTML = '<span class="unit">N·m<sup>-1</sup></span>';
-      const UNIT_DENSITY_HTML = '<span class="unit">kg·m<sup>-3</sup></span>';
-      const UNIT_ACCELERATION_HTML = '<span class="unit">m·s<sup>-2</sup></span>';
-      const UNIT_SENSITIVITY_HTML = '<span class="unit">mV·N<sup>-1</sup></span>';
-      const GAMMA_FORMULA_HTML = `<span class="math math-inline">${GAMMA_SYMBOL} = (${U1_SYMBOL} − ${U2_SYMBOL})/(2${K_SYMBOL}${L_SYMBOL}) − ${RHO_SYMBOL}${G_SYMBOL}${D_SYMBOL}${H_SYMBOL}/2</span>`;
+      const OPTION_LETTERS = ["A", "B", "C", "D"];
+      const UNIT = {
+        voltage: "\\mathrm{mV}",
+        length: "\\mathrm{m}",
+        density: "\\mathrm{kg}\\cdot\\mathrm{m}^{-3}",
+        acceleration: "\\mathrm{m}\\cdot\\mathrm{s}^{-2}",
+        sensitivity: "\\mathrm{mV}\\cdot\\mathrm{N}^{-1}",
+        gamma: "\\mathrm{N}\\cdot\\mathrm{m}^{-1}",
+        gammaMilli: "\\mathrm{mN}\\cdot\\mathrm{m}^{-1}",
+      };
+      const GAMMA_FORMULA = "\\gamma = \\frac{U_1 - U_2}{2 K L} - \\frac{\\rho g d h}{2}";
+      const UNCERTAINTY_FORMULA =
+        "u_\\mathrm{c}(\\gamma)=\\sqrt{\\left(\\frac{\\partial\\gamma}{\\partial U_1}u(U_1)\\right)^2+\\left(\\frac{\\partial\\gamma}{\\partial U_2}u(U_2)\\right)^2+\\left(\\frac{\\partial\\gamma}{\\partial h}u(h)\\right)^2}";
 
-      // 题目配置区
       const QUIZ_QUESTIONS = [
         {
           stem: "新版不确定度评定的第一步核心操作是？",
@@ -1000,170 +952,53 @@
           ],
           answer: "B",
           explanation:
-            "依据 GB/T 27418-2017，新标准要求先建立测量模型，完整纳入仪器、环境、操作等所有显著不确定度来源，再开展后续评定。",
+            "依据 GB/T 27418-2017 与 JJF 1059.1-2012，需先建立测量模型，明确输出量与各输入量之间的函数关系，再开展不确定度评定。",
         },
         {
-          stem: "下列关于 A 类、B 类评定的说法，符合新版国标的是？",
+          stem: "下列关于 A 类、B 类评定的说法，符合计量规范的是？",
           options: [
             "A 类依靠校准证书、仪器说明书评定",
             "B 类评定必须多次重复测量做统计计算",
-            "A 类评定基于重复测量统计（贝塞尔公式），B 类依靠证书、经验等非统计信息",
-            "A、B 两类计算得到的标准不确定度量纲不同，不能合成",
+            "A 类基于重复测量统计，B 类依靠证书、经验等非统计信息",
+            "A、B 两类标准不确定度量纲不同，不能合成",
           ],
           answer: "C",
           explanation:
-            "A 类评定采用统计法（多次测量数据计算）；B 类评定采用非统计法（仪器允差、校准数据、经验）；二者量纲一致，可通过方和根法合成。",
+            "A 类评定采用统计方法，B 类评定采用非统计信息；二者均以标准不确定度表示，可以按方和根法合成。",
         },
         {
-          stem: `游标卡尺最大允差 <span class="math math-inline"><span class="op">±</span><span class="number">0.02</span> ${UNIT_MILLIMETER_HTML}</span>，误差服从均匀（矩形）分布，其 B 类标准不确定度为？`,
+          stem: "游标卡尺最大允差 \\(\\pm 0.02\\,\\mathrm{mm}\\)，误差服从均匀（矩形）分布，其 B 类标准不确定度为？",
           options: [
-            `<span class="math math-inline"><span class="number">0.02</span>/<span class="op">√</span>3 ${UNIT_MILLIMETER_HTML}</span>`,
-            `<span class="math math-inline"><span class="number">0.02</span>/3 ${UNIT_MILLIMETER_HTML}</span>`,
-            `<span class="math math-inline"><span class="number">0.02</span>/<span class="op">√</span>6 ${UNIT_MILLIMETER_HTML}</span>`,
-            `<span class="math math-inline"><span class="number">0.02</span> ${UNIT_MILLIMETER_HTML}</span>`,
+            "\\(\\frac{0.02}{\\sqrt{3}}\\,\\mathrm{mm}\\)",
+            "\\(\\frac{0.02}{3}\\,\\mathrm{mm}\\)",
+            "\\(\\frac{0.02}{\\sqrt{6}}\\,\\mathrm{mm}\\)",
+            "\\(0.02\\,\\mathrm{mm}\\)",
           ],
           answer: "A",
           explanation:
-            `均匀分布区间半宽 <span class="math math-inline"><span class="var">a</span> = <span class="number">0.02</span> ${UNIT_MILLIMETER_HTML}</span>，标准不确定度计算公式为 <span class="math math-inline"><span class="var">u</span> = <span class="var">a</span>/<span class="op">√</span>3</span>；正态分布对应除以 3，三角分布对应除以 <span class="math math-inline"><span class="op">√</span>6</span>。`,
+            "均匀分布区间半宽 \\(a=0.02\\,\\mathrm{mm}\\)，标准不确定度为 \\(u=a/\\sqrt{3}\\)。",
         },
         {
-          stem: `合成标准不确定度 ${UC_GAMMA_HTML} 与扩展不确定度 ${UP_HTML} 的关系，正确的是？`,
-          options: [
-            `<span class="math math-inline">${UC_GAMMA_SYMBOL} = ${KP_SYMBOL}·${UP_SYMBOL}</span>`,
-            `<span class="math math-inline">${UP_SYMBOL} = ${KP_SYMBOL}·<span class="var">u</span><sub class="roman">c</sub></span>`,
-            `<span class="math math-inline">${UP_SYMBOL} = <span class="var">u</span><sub class="roman">c</sub></span>`,
-            `<span class="math math-inline">${UP_SYMBOL} = <span class="var">u</span><sub class="roman">c</sub><sup class="roman">2</sup></span>`,
-          ],
+          stem: "合成标准不确定度 \\(u_\\mathrm{c}\\) 与扩展不确定度 \\(U_p\\) 的关系，正确的是？",
+          options: ["\\(u_\\mathrm{c}=k_pU_p\\)", "\\(U_p=k_pu_\\mathrm{c}\\)", "\\(U_p=u_\\mathrm{c}\\)", "\\(U_p=u_\\mathrm{c}^{2}\\)"],
           answer: "B",
           explanation:
-            `扩展不确定度由合成标准不确定度乘以对应置信水平的包含因子 ${KP_HTML} 得到，即 <span class="math math-inline">${UP_SYMBOL} = ${KP_SYMBOL}·<span class="var">u</span><sub class="roman">c</sub></span>，用于表达具有指定置信概率的测量结果区间。`,
+            "扩展不确定度由合成标准不确定度乘以对应置信概率的包含因子得到，即 \\(U_p=k_pu_\\mathrm{c}\\)。",
         },
         {
-          stem: "关于新版国标中测量结果与不确定度的修约规范，下列说法正确的是？",
+          stem: "关于测量结果与不确定度的修约规范，下列说法正确的是？",
           options: [
             "扩展不确定度保留 3 位有效数字，结果无需对齐",
-            "测量结果末位必须与扩展不确定度末位对齐，不确定度一般取 1~2 位有效数字",
-            "不确定度只进不舍，测量值四舍五入",
+            "测量结果末位应与扩展不确定度末位对齐，不确定度一般取 1 到 2 位有效数字",
+            "不确定度只能进位，测量值一律四舍五入到个位",
             "常数参与计算时，有效数字必须与测量量保持一致",
           ],
           answer: "B",
           explanation:
-            "新标准规定扩展不确定度保留 1~2 位有效数字，测量数值的末位需与不确定度的末位对齐；物理常数可保留足够多位，不受测量量有效数字限制。",
+            "常规报告中，扩展不确定度通常保留 1 到 2 位有效数字，测量结果末位应与不确定度末位一致；中间计算可保留更多位数。",
         },
       ];
 
-      const OPTION_LETTERS = ["A", "B", "C", "D"];
-
-      // 答题逻辑区
-      const quizState = {
-        answers: {},
-        submitted: false,
-      };
-
-      function renderQuiz() {
-        const questionList = document.getElementById("questionList");
-        questionList.innerHTML = QUIZ_QUESTIONS.map((question, index) => {
-          const selected = quizState.answers[index];
-          const isSubmitted = quizState.submitted;
-          const isCorrect = selected === question.answer;
-          const optionHtml = question.options
-            .map((option, optionIndex) => {
-              const letter = OPTION_LETTERS[optionIndex];
-              const checked = selected === letter ? "checked" : "";
-              const disabled = isSubmitted ? "disabled" : "";
-              const correctClass = isSubmitted && letter === question.answer ? "correct" : "";
-              const wrongClass =
-                isSubmitted && selected === letter && selected !== question.answer ? "wrong" : "";
-              return `
-                <label class="quiz-option ${correctClass} ${wrongClass}">
-                  <input type="radio" name="question-${index}" value="${letter}" ${checked} ${disabled} />
-                  <span>${letter}. ${option}</span>
-                </label>
-              `;
-            })
-            .join("");
-          const feedbackHtml = isSubmitted
-            ? `
-              <div class="answer-feedback">
-                <strong class="${isCorrect ? "correct" : "wrong"}">${isCorrect ? "✓ 回答正确" : "✗ 回答错误"}</strong>
-                <div>正确答案：${question.answer}</div>
-                <div>解析：${question.explanation}</div>
-              </div>
-            `
-            : "";
-          return `
-            <article class="question-card panel">
-              <div class="question-title">${index + 1}. ${question.stem}</div>
-              <div class="option-list">${optionHtml}</div>
-              ${feedbackHtml}
-            </article>
-          `;
-        }).join("");
-
-        questionList.querySelectorAll("input[type='radio']").forEach((input) => {
-          input.addEventListener("change", (event) => {
-            const questionIndex = Number(event.target.name.replace("question-", ""));
-            quizState.answers[questionIndex] = event.target.value;
-            updateQuizActions();
-          });
-        });
-      }
-
-      function answeredCount() {
-        return QUIZ_QUESTIONS.filter((_, index) => quizState.answers[index]).length;
-      }
-
-      function scoreQuiz() {
-        return QUIZ_QUESTIONS.reduce(
-          (score, question, index) => score + (quizState.answers[index] === question.answer ? 1 : 0),
-          0,
-        );
-      }
-
-      function updateQuizActions() {
-        const submitBtn = document.getElementById("submitQuizBtn");
-        const enterBtn = document.getElementById("enterToolBtn");
-        const scoreText = document.getElementById("scoreText");
-        if (quizState.submitted) {
-          const score = scoreQuiz();
-          const percent = Math.round((score / QUIZ_QUESTIONS.length) * 100);
-          submitBtn.disabled = false;
-          submitBtn.textContent = "重新答题";
-          enterBtn.classList.remove("hidden");
-          scoreText.classList.remove("hidden");
-          scoreText.textContent = `本次答对 ${score}/${QUIZ_QUESTIONS.length} 题，正确率 ${percent}%。`;
-          return;
-        }
-        submitBtn.disabled = answeredCount() < QUIZ_QUESTIONS.length;
-        submitBtn.textContent = "提交答卷";
-        enterBtn.classList.add("hidden");
-        scoreText.classList.add("hidden");
-        scoreText.textContent = "";
-      }
-
-      function submitQuiz() {
-        if (quizState.submitted) {
-          resetQuiz();
-          return;
-        }
-        const missing = QUIZ_QUESTIONS.length - answeredCount();
-        if (missing > 0) {
-          alert(`您还有${missing}题未作答，请完成全部题目后再提交。`);
-          return;
-        }
-        quizState.submitted = true;
-        renderQuiz();
-        updateQuizActions();
-      }
-
-      function resetQuiz() {
-        quizState.answers = {};
-        quizState.submitted = false;
-        renderQuiz();
-        updateQuizActions();
-      }
-
-      // 主工具计算区
       const sampleParams = {
         rho: "1000",
         gravity: "9.80",
@@ -1192,12 +1027,147 @@
 
       const blankRows = Array.from({ length: 6 }, () => ({ u1: "", u2: "", h: "" }));
       const paramIds = Object.keys(sampleParams);
-      let rows = structuredClone(sampleRows);
+      const quizState = { answers: {}, submitted: false };
+      let rows = cloneRows(sampleRows);
+      let mathRenderQueue = Promise.resolve();
 
       const $ = (id) => document.getElementById(id);
       const square = (value) => value * value;
       const safeSqrt = (value) => Math.sqrt(Math.max(0, value));
       const mean = (values) => values.reduce((sum, value) => sum + value, 0) / values.length;
+
+      function cloneRows(source) {
+        return source.map((row) => ({ ...row }));
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;");
+      }
+
+      function typesetMath() {
+        if (!window.MathJax || !MathJax.startup || !MathJax.typesetPromise) {
+          window.__typesetMathPending = true;
+          return Promise.resolve();
+        }
+        window.__typesetMathPending = false;
+        mathRenderQueue = mathRenderQueue
+          .then(() => MathJax.startup.promise)
+          .then(() => {
+            MathJax.typesetClear();
+            return MathJax.typesetPromise();
+          })
+          .catch((error) => {
+            console.error("MathJax typeset failed:", error);
+          });
+        return mathRenderQueue;
+      }
+      window.typesetMath = typesetMath;
+
+      function renderQuiz() {
+        const questionList = $("questionList");
+        questionList.innerHTML = QUIZ_QUESTIONS.map((question, index) => {
+          const selected = quizState.answers[index];
+          const isSubmitted = quizState.submitted;
+          const isCorrect = selected === question.answer;
+          const optionHtml = question.options
+            .map((option, optionIndex) => {
+              const letter = OPTION_LETTERS[optionIndex];
+              const checked = selected === letter ? "checked" : "";
+              const disabled = isSubmitted ? "disabled" : "";
+              const correctClass = isSubmitted && letter === question.answer ? "correct" : "";
+              const wrongClass = isSubmitted && selected === letter && selected !== question.answer ? "wrong" : "";
+              return `
+                <label class="quiz-option ${correctClass} ${wrongClass}">
+                  <input type="radio" name="question-${index}" value="${letter}" ${checked} ${disabled} />
+                  <span>${letter}. ${option}</span>
+                </label>
+              `;
+            })
+            .join("");
+          const feedbackHtml = isSubmitted
+            ? `
+              <div class="answer-feedback">
+                <strong class="${isCorrect ? "correct" : "wrong"}">${isCorrect ? "回答正确" : "回答错误"}</strong>
+                <div>正确答案：${question.answer}</div>
+                <div>解析：${question.explanation}</div>
+              </div>
+            `
+            : "";
+          return `
+            <article class="question-card panel">
+              <div class="question-title">${index + 1}. ${question.stem}</div>
+              <div class="option-list">${optionHtml}</div>
+              ${feedbackHtml}
+            </article>
+          `;
+        }).join("");
+        questionList.querySelectorAll("input[type='radio']").forEach((input) => {
+          input.addEventListener("change", (event) => {
+            const questionIndex = Number(event.target.name.replace("question-", ""));
+            quizState.answers[questionIndex] = event.target.value;
+            updateQuizActions();
+          });
+        });
+        typesetMath();
+      }
+
+      function answeredCount() {
+        return QUIZ_QUESTIONS.filter((_, index) => quizState.answers[index]).length;
+      }
+
+      function scoreQuiz() {
+        return QUIZ_QUESTIONS.reduce(
+          (score, question, index) => score + (quizState.answers[index] === question.answer ? 1 : 0),
+          0,
+        );
+      }
+
+      function updateQuizActions() {
+        const submitBtn = $("submitQuizBtn");
+        const enterBtn = $("enterToolBtn");
+        const scoreText = $("scoreText");
+        if (quizState.submitted) {
+          const score = scoreQuiz();
+          const percent = Math.round((score / QUIZ_QUESTIONS.length) * 100);
+          submitBtn.disabled = false;
+          submitBtn.textContent = "重新答题";
+          enterBtn.classList.remove("hidden");
+          scoreText.classList.remove("hidden");
+          scoreText.textContent = `本次答对 ${score}/${QUIZ_QUESTIONS.length} 题，正确率 ${percent}%。`;
+          return;
+        }
+        submitBtn.disabled = answeredCount() < QUIZ_QUESTIONS.length;
+        submitBtn.textContent = "提交答卷";
+        enterBtn.classList.add("hidden");
+        scoreText.classList.add("hidden");
+        scoreText.textContent = "";
+      }
+
+      function submitQuiz() {
+        if (quizState.submitted) {
+          resetQuiz();
+          return;
+        }
+        const missing = QUIZ_QUESTIONS.length - answeredCount();
+        if (missing > 0) {
+          alert(`您还有 ${missing} 题未作答，请完成全部题目后再提交。`);
+          return;
+        }
+        quizState.submitted = true;
+        renderQuiz();
+        updateQuizActions();
+      }
+
+      function resetQuiz() {
+        quizState.answers = {};
+        quizState.submitted = false;
+        renderQuiz();
+        updateQuizActions();
+      }
 
       function numberFromInput(id, fallback = 0) {
         const value = Number($(id).value);
@@ -1217,35 +1187,64 @@
         return value.toFixed(digits);
       }
 
-      function formatScalar(value, digits = 6) {
-        return Number.isFinite(value) ? `<span class="math number">${formatNumber(value, digits)}</span>` : "--";
+      function latexNumber(value, digits = 6) {
+        if (!Number.isFinite(value)) return "--";
+        if (Math.abs(value) >= 1000 || (Math.abs(value) > 0 && Math.abs(value) < 0.0001)) {
+          const [mantissa, exponent] = value.toExponential(4).split("e");
+          return `${mantissa}\\times 10^{${Number(exponent)}}`;
+        }
+        return value.toFixed(digits);
       }
 
-      function formatWithUnit(value, digits, unitHtml) {
-        return Number.isFinite(value)
-          ? `<span class="math"><span class="number">${formatNumber(value, digits)}</span> ${unitHtml}</span>`
-          : "--";
+      function math(content) {
+        return `\\(${content}\\)`;
+      }
+
+      function formatMeasure(value, digits, unitLatex) {
+        return Number.isFinite(value) ? math(`${latexNumber(value, digits)}\\,${unitLatex}`) : "--";
       }
 
       function formatVoltage(value) {
-        return formatWithUnit(value, 5, UNIT_VOLTAGE_HTML);
+        return formatMeasure(value, 5, UNIT.voltage);
       }
 
       function formatLength(value) {
-        return formatWithUnit(value, 6, UNIT_LENGTH_HTML);
+        return formatMeasure(value, 6, UNIT.length);
       }
 
       function formatGamma(value) {
-        return formatWithUnit(value, 6, UNIT_GAMMA_HTML);
+        return formatMeasure(value, 6, UNIT.gamma);
       }
 
       function formatGammaCompact(value) {
-        return formatWithUnit(value, 4, UNIT_GAMMA_HTML);
+        return formatMeasure(value, 4, UNIT.gamma);
+      }
+
+      function formatGammaMilli(value, digits = 3) {
+        return formatMeasure(value * 1000, digits, UNIT.gammaMilli);
+      }
+
+      function formatScalar(value, digits = 6) {
+        return Number.isFinite(value) ? math(latexNumber(value, digits)) : "--";
+      }
+
+      function formatPercent(value) {
+        return Number.isFinite(value) ? math(`${latexNumber(value * 100, 3)}\\%`) : "--";
+      }
+
+      function finalGammaLatex(meanValue, expanded) {
+        if (!Number.isFinite(meanValue) || !Number.isFinite(expanded)) return "--";
+        return math(`\\left(${latexNumber(meanValue, 6)} \\pm ${latexNumber(expanded, 6)}\\right)\\,${UNIT.gamma}`);
+      }
+
+      function finalGammaMilliLatex(meanValue, expanded) {
+        if (!Number.isFinite(meanValue) || !Number.isFinite(expanded)) return "--";
+        return math(`\\left(${latexNumber(meanValue * 1000, 3)} \\pm ${latexNumber(expanded * 1000, 3)}\\right)\\,${UNIT.gammaMilli}`);
       }
 
       function formatInterval(meanValue, expanded) {
         if (!Number.isFinite(meanValue) || !Number.isFinite(expanded)) return "等待有效数据";
-        return `[${formatGamma(meanValue - expanded)}, ${formatGamma(meanValue + expanded)}]`;
+        return `置信区间：${math(`[${latexNumber(meanValue - expanded, 6)},\\ ${latexNumber(meanValue + expanded, 6)}]\\,${UNIT.gamma}`)}`;
       }
 
       function getParams() {
@@ -1325,6 +1324,9 @@
           square(partialU1 * uU1) + square(partialU2 * uU2) + square(partialH * uH),
         );
         const expandedGammaUncertainty = params.coverageFactor * standardGammaUncertainty;
+        const relativeStandard = Math.abs(gammaAverage) > 0 ? standardGammaUncertainty / Math.abs(gammaAverage) : NaN;
+        const relativeExpanded = Math.abs(gammaAverage) > 0 ? expandedGammaUncertainty / Math.abs(gammaAverage) : NaN;
+
         return {
           params,
           validRows,
@@ -1346,8 +1348,9 @@
           partialH,
           standardGammaUncertainty,
           expandedGammaUncertainty,
+          relativeStandard,
+          relativeExpanded,
           rowGammas: new Map(validRows.map((row) => [row.rowIndex, gammaValue(params, row.u1, row.u2, row.h)])),
-          formula: GAMMA_FORMULA_HTML,
         };
       }
 
@@ -1373,8 +1376,9 @@
           partialH: NaN,
           standardGammaUncertainty: NaN,
           expandedGammaUncertainty: NaN,
+          relativeStandard: NaN,
+          relativeExpanded: NaN,
           rowGammas: new Map(),
-          formula: GAMMA_FORMULA_HTML,
         };
       }
 
@@ -1384,10 +1388,10 @@
             (row, index) => `
               <tr data-row="${index}">
                 <td>${index + 1}</td>
-                <td><input type="number" step="0.001" value="${row.u1}" data-field="u1" data-index="${index}" aria-label="第${index + 1}行 U1" /></td>
-                <td><input type="number" step="0.001" value="${row.u2}" data-field="u2" data-index="${index}" aria-label="第${index + 1}行 U2" /></td>
-                <td><input type="number" step="0.00001" value="${row.h}" data-field="h" data-index="${index}" aria-label="第${index + 1}行 h" /></td>
-                <td class="force-cell">${formatScalar(result.rowGammas.get(index), 6)}</td>
+                <td><input type="number" step="0.001" value="${escapeHtml(row.u1)}" data-field="u1" data-index="${index}" aria-label="第${index + 1}行 U1" /></td>
+                <td><input type="number" step="0.001" value="${escapeHtml(row.u2)}" data-field="u2" data-index="${index}" aria-label="第${index + 1}行 U断" /></td>
+                <td><input type="number" step="0.00001" value="${escapeHtml(row.h)}" data-field="h" data-index="${index}" aria-label="第${index + 1}行 h" /></td>
+                <td class="force-cell" data-gamma-index="${index}">${formatNumber(result.rowGammas.get(index), 6)}</td>
                 <td><button class="row-delete" data-delete="${index}" aria-label="删除第${index + 1}行">×</button></td>
               </tr>
             `,
@@ -1398,7 +1402,7 @@
           input.addEventListener("input", (event) => {
             const target = event.target;
             rows[Number(target.dataset.index)][target.dataset.field] = target.value;
-            calculateAndRender();
+            calculateAndRender({ rerenderRows: false });
           });
         });
 
@@ -1406,22 +1410,25 @@
           button.addEventListener("click", () => {
             rows.splice(Number(button.dataset.delete), 1);
             if (!rows.length) rows.push({ u1: "", u2: "", h: "" });
-            calculateAndRender();
+            calculateAndRender({ rerenderRows: true });
           });
         });
       }
 
+      function updateRowGammas(result) {
+        $("measurementBody").querySelectorAll("[data-gamma-index]").forEach((cell) => {
+          const index = Number(cell.dataset.gammaIndex);
+          cell.textContent = formatNumber(result.rowGammas.get(index), 6);
+        });
+      }
+
       function updateText(result) {
-        const finalText =
-          Number.isFinite(result.gammaAverage) && Number.isFinite(result.expandedGammaUncertainty)
-            ? `${formatGamma(result.gammaAverage)} <span class="math op">±</span> ${formatGamma(result.expandedGammaUncertainty)}`
-            : "--";
-        const intervalText =
-          Number.isFinite(result.gammaAverage) && Number.isFinite(result.expandedGammaUncertainty)
-            ? `置信区间：${formatInterval(result.gammaAverage, result.expandedGammaUncertainty)}`
-            : "等待有效数据";
+        const finalText = finalGammaLatex(result.gammaAverage, result.expandedGammaUncertainty);
+        const intervalText = formatInterval(result.gammaAverage, result.expandedGammaUncertainty);
         $("centerGamma").innerHTML = finalText;
         $("centerInterval").innerHTML = intervalText;
+        $("centerGammaMilli").innerHTML =
+          finalText === "--" ? "--" : `等效表示：${finalGammaMilliLatex(result.gammaAverage, result.expandedGammaUncertainty)}`;
         $("finalGamma").innerHTML = finalText;
         $("finalInterval").innerHTML = intervalText;
         $("u1Average").innerHTML = formatVoltage(result.u1Average);
@@ -1429,9 +1436,7 @@
         $("hAverage").innerHTML = formatLength(result.hAverage);
         $("standardGammaUncertainty").innerHTML = formatGamma(result.standardGammaUncertainty);
         $("expandedGammaUncertainty").innerHTML = formatGamma(result.expandedGammaUncertainty);
-        $("repeatCount").textContent = result.validRows.length ? String(result.validRows.length) : "--";
-        $("formulaText").innerHTML = result.formula;
-        $("centerFormula").innerHTML = result.formula;
+        $("repeatCount").innerHTML = result.validRows.length ? math(String(result.validRows.length)) : "--";
         $("uA1").innerHTML = formatVoltage(result.uA1);
         $("uB1").innerHTML = formatVoltage(result.uB1);
         $("uU1").innerHTML = formatVoltage(result.uU1);
@@ -1445,17 +1450,20 @@
         $("partialU2").innerHTML = formatScalar(result.partialU2, 8);
         $("partialH").innerHTML = formatScalar(result.partialH, 6);
         $("kpValue").innerHTML = formatScalar(result.params.coverageFactor, 3);
+        $("relativeStandard").innerHTML = formatPercent(result.relativeStandard);
+        $("relativeExpanded").innerHTML = formatPercent(result.relativeExpanded);
       }
 
       function renderCalculationSteps(result) {
         const steps = [
-          `${U1_HTML} 平均值 = ${formatVoltage(result.u1Average)}，${U2_HTML} 平均值 = ${formatVoltage(result.u2Average)}，${H_HTML} 平均值 = ${formatLength(result.hAverage)}`,
-          `<span class="math math-inline"><span class="var">u</span>(${U1_SYMBOL}) = <span class="op">√</span>[<span class="var">u</span><sub class="roman">A</sub>(${U1_SYMBOL})<sup class="roman">2</sup> + <span class="var">u</span><sub class="roman">B</sub>(${U1_SYMBOL})<sup class="roman">2</sup>]</span> = ${formatVoltage(result.uU1)}`,
-          `<span class="math math-inline"><span class="var">u</span>(${U2_SYMBOL}) = <span class="op">√</span>[<span class="var">u</span><sub class="roman">A</sub>(${U2_SYMBOL})<sup class="roman">2</sup> + <span class="var">u</span><sub class="roman">B</sub>(${U2_SYMBOL})<sup class="roman">2</sup>]</span> = ${formatVoltage(result.uU2)}`,
-          `<span class="math math-inline"><span class="var">u</span>(${H_SYMBOL}) = <span class="op">√</span>[<span class="var">u</span><sub class="roman">A</sub>(${H_SYMBOL})<sup class="roman">2</sup> + <span class="var">u</span><sub class="roman">B</sub>(${H_SYMBOL})<sup class="roman">2</sup>]</span> = ${formatLength(result.uH)}`,
-          `<span class="math math-inline"><span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${U1_SYMBOL}</span> = ${formatScalar(result.partialU1, 8)}，<span class="math math-inline"><span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${U2_SYMBOL}</span> = ${formatScalar(result.partialU2, 8)}，<span class="math math-inline"><span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${H_SYMBOL}</span> = ${formatScalar(result.partialH, 6)}`,
-          `<span class="math math-inline">${UC_GAMMA_SYMBOL} = <span class="op">√</span>[(<span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${U1_SYMBOL}·<span class="var">u</span>(${U1_SYMBOL}))<sup class="roman">2</sup> + (<span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${U2_SYMBOL}·<span class="var">u</span>(${U2_SYMBOL}))<sup class="roman">2</sup> + (<span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${H_SYMBOL}·<span class="var">u</span>(${H_SYMBOL}))<sup class="roman">2</sup>]</span> = ${formatGamma(result.standardGammaUncertainty)}`,
-          `<span class="math math-inline">${UP_SYMBOL} = ${KP_SYMBOL}·${UC_GAMMA_SYMBOL}</span> = ${formatGamma(result.expandedGammaUncertainty)}`,
+          `\\(\\bar{U}_{1,\\mathrm{avg}}=${latexNumber(result.u1Average, 5)}\\,${UNIT.voltage}\\)，\\(\\bar{U}_{2,\\mathrm{avg}}=${latexNumber(result.u2Average, 5)}\\,${UNIT.voltage}\\)，\\(\\bar{h}_{\\mathrm{avg}}=${latexNumber(result.hAverage, 6)}\\,${UNIT.length}\\)`,
+          `\\(u_\\mathrm{A}(x)=\\sqrt{\\frac{\\sum_{i=1}^{n}(x_i-\\bar{x}_{\\mathrm{avg}})^2}{n(n-1)}}\\)，\\(u_\\mathrm{B}=\\delta/\\sqrt{3}\\)`,
+          `\\(u(U_1)=\\sqrt{u_\\mathrm{A}^{2}(U_1)+u_\\mathrm{B}^{2}(U_1)}=${latexNumber(result.uU1, 5)}\\,${UNIT.voltage}\\)`,
+          `\\(u(U_2)=\\sqrt{u_\\mathrm{A}^{2}(U_2)+u_\\mathrm{B}^{2}(U_2)}=${latexNumber(result.uU2, 5)}\\,${UNIT.voltage}\\)`,
+          `\\(u(h)=\\sqrt{u_\\mathrm{A}^{2}(h)+u_\\mathrm{B}^{2}(h)}=${latexNumber(result.uH, 6)}\\,${UNIT.length}\\)`,
+          `\\(\\frac{\\partial\\gamma}{\\partial U_1}=${latexNumber(result.partialU1, 8)}\\)，\\(\\frac{\\partial\\gamma}{\\partial U_2}=${latexNumber(result.partialU2, 8)}\\)，\\(\\frac{\\partial\\gamma}{\\partial h}=${latexNumber(result.partialH, 6)}\\)`,
+          `\\(${UNCERTAINTY_FORMULA}=${latexNumber(result.standardGammaUncertainty, 6)}\\,${UNIT.gamma}\\)`,
+          `\\(U_p(\\gamma)=k_pu_\\mathrm{c}(\\gamma)=${latexNumber(result.expandedGammaUncertainty, 6)}\\,${UNIT.gamma}\\)`,
         ];
         $("calculationSteps").innerHTML = steps.map((step) => `<li>${step}</li>`).join("");
       }
@@ -1467,67 +1475,70 @@
             <h3>实验常数</h3>
             <table class="mini-table">
               <tbody>
-                <tr><td><span class="math">${RHO_SYMBOL}</span></td><td>${formatWithUnit(params.rho, 2, UNIT_DENSITY_HTML)}</td></tr>
-                <tr><td><span class="math">${G_SYMBOL}</span></td><td>${formatWithUnit(params.gravity, 2, UNIT_ACCELERATION_HTML)}</td></tr>
-                <tr><td><span class="math">${K_SYMBOL}</span></td><td>${formatWithUnit(params.instrumentK, 2, UNIT_SENSITIVITY_HTML)}</td></tr>
-                <tr><td><span class="math">${L_SYMBOL}</span></td><td>${formatLength(params.frameWidth)}</td></tr>
-                <tr><td><span class="math">${D_SYMBOL}</span></td><td>${formatLength(params.filmThickness)}</td></tr>
-                <tr><td>${KP_HTML}</td><td>${formatScalar(params.coverageFactor, 3)}</td></tr>
+                <tr><td>\\(\\rho\\)</td><td>${formatMeasure(params.rho, 2, UNIT.density)}</td></tr>
+                <tr><td>\\(g\\)</td><td>${formatMeasure(params.gravity, 2, UNIT.acceleration)}</td></tr>
+                <tr><td>\\(K\\)</td><td>${formatMeasure(params.instrumentK, 2, UNIT.sensitivity)}</td></tr>
+                <tr><td>\\(L\\)</td><td>${formatLength(params.frameWidth)}</td></tr>
+                <tr><td>\\(d\\)</td><td>${formatLength(params.filmThickness)}</td></tr>
+                <tr><td>\\(k_p\\)</td><td>${formatScalar(params.coverageFactor, 3)}</td></tr>
               </tbody>
             </table>
           </article>
           <article class="report-block">
             <h3>平均读数</h3>
             <ul>
-              <li><span class="math"><span class="var">U</span><sub class="roman">1,avg</sub></span> = ${formatVoltage(result.u1Average)}</li>
-              <li><span class="math"><span class="var">U</span><sub class="roman">2,avg</sub></span> = ${formatVoltage(result.u2Average)}</li>
-              <li><span class="math"><span class="var">h</span><sub class="roman">avg</sub></span> = ${formatLength(result.hAverage)}</li>
-              <li><span class="math"><span class="var">n</span></span> = ${result.validRows.length || "--"}</li>
+              <li>\\(\\bar{U}_{1,\\mathrm{avg}}\\) = ${formatVoltage(result.u1Average)}</li>
+              <li>\\(\\bar{U}_{2,\\mathrm{avg}}\\) = ${formatVoltage(result.u2Average)}</li>
+              <li>\\(\\bar{h}_{\\mathrm{avg}}\\) = ${formatLength(result.hAverage)}</li>
+              <li>\\(n\\) = ${result.validRows.length ? math(String(result.validRows.length)) : "--"}</li>
             </ul>
           </article>
           <article class="report-block">
             <h3>合成标准不确定度</h3>
             <ul>
-              <li><span class="math"><span class="var">u</span>(${U1_SYMBOL})</span> = ${formatVoltage(result.uU1)}</li>
-              <li><span class="math"><span class="var">u</span>(${U2_SYMBOL})</span> = ${formatVoltage(result.uU2)}</li>
-              <li><span class="math"><span class="var">u</span>(${H_SYMBOL})</span> = ${formatLength(result.uH)}</li>
-              <li>${UC_GAMMA_HTML} = ${formatGamma(result.standardGammaUncertainty)}</li>
+              <li>\\(u(U_1)\\) = ${formatVoltage(result.uU1)}</li>
+              <li>\\(u(U_2)\\) = ${formatVoltage(result.uU2)}</li>
+              <li>\\(u(h)\\) = ${formatLength(result.uH)}</li>
+              <li>\\(u_\\mathrm{c}(\\gamma)\\) = ${formatGamma(result.standardGammaUncertainty)}</li>
             </ul>
           </article>
           <article class="report-block">
             <h3>最终结果</h3>
             <ul>
-              <li>${GAMMA_HTML} 平均值 = ${formatGamma(result.gammaAverage)}</li>
-              <li>${UP_HTML}(<span class="math"><span class="var">p</span> = <span class="number">0.95</span></span>) = ${formatGamma(result.expandedGammaUncertainty)}</li>
-              <li>${GAMMA_HTML} = (${formatGammaCompact(result.gammaAverage)} <span class="math op">±</span> ${formatGammaCompact(result.expandedGammaUncertainty)})</li>
+              <li>\\(\\bar{\\gamma}\\) = ${formatGamma(result.gammaAverage)}</li>
+              <li>\\(U_p(\\gamma),\\ p=0.95\\) = ${formatGamma(result.expandedGammaUncertainty)}</li>
+              <li>\\(\\gamma\\) = ${finalGammaLatex(result.gammaAverage, result.expandedGammaUncertainty)}</li>
+              <li>\\(\\gamma\\) = ${finalGammaMilliLatex(result.gammaAverage, result.expandedGammaUncertainty)}</li>
             </ul>
           </article>
           <article class="report-block wide">
             <h3>公式与偏导</h3>
             <ul>
-              <li>${GAMMA_FORMULA_HTML}</li>
-              <li><span class="math"><span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${U1_SYMBOL}</span> = ${formatScalar(result.partialU1, 8)}</li>
-              <li><span class="math"><span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${U2_SYMBOL}</span> = ${formatScalar(result.partialU2, 8)}</li>
-              <li><span class="math"><span class="op">∂</span>${GAMMA_SYMBOL}/<span class="op">∂</span>${H_SYMBOL}</span> = ${formatScalar(result.partialH, 6)}</li>
+              <li>\\(${GAMMA_FORMULA}\\)</li>
+              <li>\\(\\frac{\\partial\\gamma}{\\partial U_1}=${latexNumber(result.partialU1, 8)}\\)</li>
+              <li>\\(\\frac{\\partial\\gamma}{\\partial U_2}=${latexNumber(result.partialU2, 8)}\\)</li>
+              <li>\\(\\frac{\\partial\\gamma}{\\partial h}=${latexNumber(result.partialH, 6)}\\)</li>
             </ul>
           </article>
           <article class="report-block wide">
             <h3>实验结论</h3>
             <p>
-              按 A 类、B 类不确定度合成并进行偏导传播，最终表面张力系数为
-              <strong>${formatGamma(result.gammaAverage)} <span class="math op">±</span> ${formatGamma(result.expandedGammaUncertainty)}</strong>，
-              置信水平按 ${KP_HTML} = ${formatScalar(params.coverageFactor, 3)} 处理。
+              按 A 类、B 类标准不确定度合成，并进行偏导传播，最终表面张力系数为
+              <strong>${finalGammaLatex(result.gammaAverage, result.expandedGammaUncertainty)}</strong>，
+              置信水平按 \\(p=0.95\\)、\\(k_p=${latexNumber(params.coverageFactor, 3)}\\) 处理。
             </p>
           </article>
         `;
       }
 
-      function calculateAndRender() {
+      function calculateAndRender({ rerenderRows = false } = {}) {
         const result = calculate();
-        renderRows(result);
+        if (rerenderRows) renderRows(result);
+        else updateRowGammas(result);
         updateText(result);
         renderCalculationSteps(result);
         renderReport(result);
+        typesetMath();
       }
 
       function setInputValues(values) {
@@ -1538,33 +1549,33 @@
 
       function loadSample() {
         setInputValues(sampleParams);
-        rows = structuredClone(sampleRows);
-        calculateAndRender();
+        rows = cloneRows(sampleRows);
+        calculateAndRender({ rerenderRows: true });
       }
 
       function resetAll() {
         loadSample();
       }
 
-      // 显隐控制区
       function enterMainTool() {
-        document.getElementById("quizGate").classList.add("hidden");
-        document.getElementById("mainTool").classList.remove("hidden");
+        $("quizGate").classList.add("hidden");
+        $("mainTool").classList.remove("hidden");
+        typesetMath();
       }
 
       function bindEvents() {
-        document.getElementById("submitQuizBtn").addEventListener("click", submitQuiz);
-        document.getElementById("enterToolBtn").addEventListener("click", enterMainTool);
+        $("submitQuizBtn").addEventListener("click", submitQuiz);
+        $("enterToolBtn").addEventListener("click", enterMainTool);
         paramIds.forEach((id) => {
-          $(id).addEventListener("input", calculateAndRender);
+          $(id).addEventListener("input", () => calculateAndRender({ rerenderRows: false }));
         });
         $("addRowBtn").addEventListener("click", () => {
           rows.push({ u1: "", u2: "", h: "" });
-          calculateAndRender();
+          calculateAndRender({ rerenderRows: true });
         });
         $("clearRowsBtn").addEventListener("click", () => {
-          rows = structuredClone(blankRows);
-          calculateAndRender();
+          rows = cloneRows(blankRows);
+          calculateAndRender({ rerenderRows: true });
         });
         $("loadSampleBtn").addEventListener("click", loadSample);
         $("resetBtn").addEventListener("click", resetAll);
@@ -1574,8 +1585,7 @@
       updateQuizActions();
       setInputValues(sampleParams);
       bindEvents();
-      calculateAndRender();
+      calculateAndRender({ rerenderRows: true });
     </script>
   </body>
 </html>
-
