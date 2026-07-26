@@ -18,7 +18,7 @@
           minScale: 0.72,
           matchFontHeight: false,
           mtextInheritFont: true,
-          linebreaks: { automatic: true, width: "container" },
+          linebreaks: { automatic: false },
         },
         options: {
           enableMenu: false,
@@ -137,11 +137,11 @@
 
       mjx-container,
       mjx-container * {
-        max-width: 100%;
         font-family: "Times New Roman", "Cambria Math", serif !important;
       }
 
       mjx-container {
+        max-width: 100%;
         overflow-x: auto;
         overflow-y: hidden;
         padding: 0 0.08em;
@@ -519,6 +519,12 @@
         margin: 0;
         padding-left: 20px;
         line-height: 1.72;
+      }
+
+      .calculation-steps li {
+        min-width: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
       }
 
       .formula-display {
@@ -1463,7 +1469,7 @@
           `\\(u(U_2)=\\sqrt{u_\\mathrm{A}^{2}(U_2)+u_\\mathrm{B}^{2}(U_2)}=${latexNumber(result.uU2, 5)}\\,${UNIT.voltage}\\)`,
           `\\(u(h)=\\sqrt{u_\\mathrm{A}^{2}(h)+u_\\mathrm{B}^{2}(h)}=${latexNumber(result.uH, 6)}\\,${UNIT.length}\\)`,
           `\\(\\frac{\\partial\\gamma}{\\partial U_1}=${latexNumber(result.partialU1, 8)}\\)，\\(\\frac{\\partial\\gamma}{\\partial U_2}=${latexNumber(result.partialU2, 8)}\\)，\\(\\frac{\\partial\\gamma}{\\partial h}=${latexNumber(result.partialH, 6)}\\)`,
-          `\\(${UNCERTAINTY_FORMULA}=${latexNumber(result.standardGammaUncertainty, 6)}\\,${UNIT.gamma}\\)`,
+          `\\[${UNCERTAINTY_FORMULA}=${latexNumber(result.standardGammaUncertainty, 6)}\\,${UNIT.gamma}\\]`,
           `\\(U_p(\\gamma)=k_pu_\\mathrm{c}(\\gamma)=${latexNumber(result.expandedGammaUncertainty, 6)}\\,${UNIT.gamma}\\)`,
         ];
         $("calculationSteps").innerHTML = steps.map((step) => `<li>${step}</li>`).join("");
