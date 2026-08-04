@@ -289,7 +289,7 @@
       }
       .data-table {
         width: 100%;
-        min-width: 760px;
+        min-width: 620px;
         border-collapse: collapse;
         background: #fff;
       }
@@ -359,24 +359,19 @@
       }
       .calculation-grid {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+        gap: 1px;
         overflow: hidden;
         margin-top: 16px;
         border: 1px solid var(--line);
         border-radius: 8px;
-        background: #fff;
+        background: var(--line);
       }
       .calculation-grid div {
         min-width: 0;
         padding: 16px;
-        border-right: 1px solid var(--line);
-        border-bottom: 1px solid var(--line);
-      }
-      .calculation-grid div:nth-child(3n) {
-        border-right: 0;
-      }
-      .calculation-grid div:nth-last-child(-n + 3) {
-        border-bottom: 0;
+        border: 0;
+        background: #fff;
       }
       .calculation-grid span {
         display: block;
@@ -557,14 +552,8 @@
         .report-content {
           grid-template-columns: 1fr;
         }
-        .calculation-grid div,
-        .calculation-grid div:nth-child(3n),
-        .calculation-grid div:nth-last-child(-n + 3) {
-          border-right: 0;
-          border-bottom: 1px solid var(--line);
-        }
-        .calculation-grid div:last-child {
-          border-bottom: 0;
+        .calculation-grid div {
+          border: 0;
         }
         .report-block.wide {
           grid-column: auto;
@@ -774,12 +763,8 @@
             </div>
             <div class="field-grid">
               <label class="field">
-                <span>\(\Delta U_1\) <small>mV</small></span>
-                <input id="deltaU1" type="number" step="0.001" value="0.01">
-              </label>
-              <label class="field">
-                <span>\(\Delta U_2\) <small>mV</small></span>
-                <input id="deltaU2" type="number" step="0.001" value="0.01">
+                <span>\(\Delta U\) <small>mV</small></span>
+                <input id="deltaU" type="number" step="0.001" value="0.01">
               </label>
               <label class="field">
                 <span>\(\Delta h\) <small>m</small></span>
@@ -791,7 +776,7 @@
             <div class="section-heading">
               <h2>理论表达式</h2>
             </div>
-            <p id="formulaText">\( \gamma = \frac{U_1 - U_2}{2 K L} - \frac{\rho g d h}{2} \)</p>
+            <p id="formulaText">\( \gamma = \frac{U}{2 K L} - \frac{\rho g d h}{2} \)</p>
             <p class="muted">A 类不确定度由重复测量计算，B 类不确定度按仪器分度值除以 \(\sqrt{3}\)。</p>
           </section>
         </aside>
@@ -799,7 +784,7 @@
           <div class="section-heading">
             <div>
               <h2>多次测量数据</h2>
-              <p>输入每次测量的 \(U_1\)、\(U_2\) 和 \(h\)，网页按平均读数计算 \(\gamma\)，并按偏导传播合成不确定度。</p>
+              <p>输入每次测量的 \(U\) 和 \(h\)，网页按平均读数计算 \(\gamma\)，并按偏导传播合成不确定度。</p>
             </div>
             <div class="inline-actions">
               <button id="addRowBtn" class="secondary">添加一行</button>
@@ -811,118 +796,24 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>\(U_1 / \mathrm{mV}\)</th>
-                  <th>\(U_2 / \mathrm{mV}\)</th>
+                  <th>\(U / \mathrm{mV}\)</th>
                   <th>\(h / \mathrm{m}\)</th>
                   <th>\(\gamma_i / \mathrm{N}\cdot\mathrm{m}^{-1}\)</th>
                   <th></th>
                 </tr>
               </thead>
-              <tbody id="measurementBody">
-              <tr data-row="0">
-                <td>1</td>
-                <td><input type="number" step="0.001" value="1.69" data-field="u1" data-index="0" aria-label="第1行 U1"></td>
-                <td><input type="number" step="0.001" value="0.04" data-field="u2" data-index="0" aria-label="第1行 U2"></td>
-                <td><input type="number" step="0.00001" value="0.00381" data-field="h" data-index="0" aria-label="第1行 h"></td>
-                <td class="force-cell">0.070302</td>
-                <td><button class="row-delete" data-delete="0" aria-label="删除第1行">×</button></td>
-              </tr>
-              <tr data-row="1">
-                <td>2</td>
-                <td><input type="number" step="0.001" value="1.75" data-field="u1" data-index="1" aria-label="第2行 U1"></td>
-                <td><input type="number" step="0.001" value="0.11" data-field="u2" data-index="1" aria-label="第2行 U2"></td>
-                <td><input type="number" step="0.00001" value="0.00382" data-field="h" data-index="1" aria-label="第2行 h"></td>
-                <td class="force-cell">0.069853</td>
-                <td><button class="row-delete" data-delete="1" aria-label="删除第2行">×</button></td>
-              </tr>
-              <tr data-row="2">
-                <td>3</td>
-                <td><input type="number" step="0.001" value="1.44" data-field="u1" data-index="2" aria-label="第3行 U1"></td>
-                <td><input type="number" step="0.001" value="-0.19" data-field="u2" data-index="2" aria-label="第3行 U2"></td>
-                <td><input type="number" step="0.00001" value="0.00337" data-field="h" data-index="2" aria-label="第3行 h"></td>
-                <td class="force-cell">0.069720</td>
-                <td><button class="row-delete" data-delete="2" aria-label="删除第3行">×</button></td>
-              </tr>
-              <tr data-row="3">
-                <td>4</td>
-                <td><input type="number" step="0.001" value="1.52" data-field="u1" data-index="3" aria-label="第4行 U1"></td>
-                <td><input type="number" step="0.001" value="-0.16" data-field="u2" data-index="3" aria-label="第4行 U2"></td>
-                <td><input type="number" step="0.00001" value="0.00348" data-field="h" data-index="3" aria-label="第4行 h"></td>
-                <td class="force-cell">0.071854</td>
-                <td><button class="row-delete" data-delete="3" aria-label="删除第4行">×</button></td>
-              </tr>
-              <tr data-row="4">
-                <td>5</td>
-                <td><input type="number" step="0.001" value="1.71" data-field="u1" data-index="4" aria-label="第5行 U1"></td>
-                <td><input type="number" step="0.001" value="0" data-field="u2" data-index="4" aria-label="第5行 U2"></td>
-                <td><input type="number" step="0.00001" value="0.00416" data-field="h" data-index="4" aria-label="第5行 h"></td>
-                <td class="force-cell">0.072713</td>
-                <td><button class="row-delete" data-delete="4" aria-label="删除第5行">×</button></td>
-              </tr>
-              <tr data-row="5">
-                <td>6</td>
-                <td><input type="number" step="0.001" value="1.71" data-field="u1" data-index="5" aria-label="第6行 U1"></td>
-                <td><input type="number" step="0.001" value="0" data-field="u2" data-index="5" aria-label="第6行 U2"></td>
-                <td><input type="number" step="0.00001" value="0.00339" data-field="h" data-index="5" aria-label="第6行 h"></td>
-                <td class="force-cell">0.073242</td>
-                <td><button class="row-delete" data-delete="5" aria-label="删除第6行">×</button></td>
-              </tr>
-              <tr data-row="6">
-                <td>7</td>
-                <td><input type="number" step="0.001" value="1.44" data-field="u1" data-index="6" aria-label="第7行 U1"></td>
-                <td><input type="number" step="0.001" value="-0.22" data-field="u2" data-index="6" aria-label="第7行 U2"></td>
-                <td><input type="number" step="0.00001" value="0.00351" data-field="h" data-index="6" aria-label="第7行 h"></td>
-                <td class="force-cell">0.070950</td>
-                <td><button class="row-delete" data-delete="6" aria-label="删除第7行">×</button></td>
-              </tr>
-              <tr data-row="7">
-                <td>8</td>
-                <td><input type="number" step="0.001" value="1.53" data-field="u1" data-index="7" aria-label="第8行 U1"></td>
-                <td><input type="number" step="0.001" value="-0.14" data-field="u2" data-index="7" aria-label="第8行 U2"></td>
-                <td><input type="number" step="0.00001" value="0.00348" data-field="h" data-index="7" aria-label="第8行 h"></td>
-                <td class="force-cell">0.071412</td>
-                <td><button class="row-delete" data-delete="7" aria-label="删除第8行">×</button></td>
-              </tr>
-              <tr data-row="8">
-                <td>9</td>
-                <td><input type="number" step="0.001" value="1.60" data-field="u1" data-index="8" aria-label="第9行 U1"></td>
-                <td><input type="number" step="0.001" value="-0.06" data-field="u2" data-index="8" aria-label="第9行 U2"></td>
-                <td><input type="number" step="0.00001" value="0.00376" data-field="h" data-index="8" aria-label="第9行 h"></td>
-                <td class="force-cell">0.070778</td>
-                <td><button class="row-delete" data-delete="8" aria-label="删除第9行">×</button></td>
-              </tr>
-              <tr data-row="9">
-                <td>10</td>
-                <td><input type="number" step="0.001" value="1.77" data-field="u1" data-index="9" aria-label="第10行 U1"></td>
-                <td><input type="number" step="0.001" value="0.04" data-field="u2" data-index="9" aria-label="第10行 U2"></td>
-                <td><input type="number" step="0.00001" value="0.00335" data-field="h" data-index="9" aria-label="第10行 h"></td>
-                <td class="force-cell">0.074153</td>
-                <td><button class="row-delete" data-delete="9" aria-label="删除第10行">×</button></td>
-              </tr>
-              <tr data-row="10">
-                <td>11</td>
-                <td><input type="number" step="0.001" value="1.54" data-field="u1" data-index="10" aria-label="第11行 U1"></td>
-                <td><input type="number" step="0.001" value="-0.11" data-field="u2" data-index="10" aria-label="第11行 U2"></td>
-                <td><input type="number" step="0.00001" value="0.00336" data-field="h" data-index="10" aria-label="第11行 h"></td>
-                <td class="force-cell">0.070611</td>
-                <td><button class="row-delete" data-delete="10" aria-label="删除第11行">×</button></td>
-              </tr>
-            </tbody>
+              <tbody id="measurementBody"></tbody>
             </table>
           </div>
           <section class="calculation-hero">
             <span>最终测量结果</span>
-            <strong id="centerGamma">\(0.071417 \pm 0.004410\ \text{N/m}\)</strong>
-            <p id="centerInterval">置信区间：[0.067008 N/m, 0.075827 N/m]</p>
+            <strong id="centerGamma">\(0.071417 \pm 0.001004\ \text{N/m}\)</strong>
+            <p id="centerInterval">置信区间：[0.070413 N/m, 0.072421 N/m]</p>
           </section>
           <div class="calculation-grid">
             <div>
-              <span>\(U_1\) 平均值</span>
-              <strong id="u1Average">1.60909 mV</strong>
-            </div>
-            <div>
-              <span>\(U_2\) 平均值</span>
-              <strong id="u2Average">-0.06273 mV</strong>
+              <span>\(U\) 平均值</span>
+              <strong id="uAverage">1.67182 mV</strong>
             </div>
             <div>
               <span>\(h\) 平均值</span>
@@ -930,11 +821,11 @@
             </div>
             <div>
               <span>\(u_\gamma\) 标准不确定度</span>
-              <strong id="standardGammaUncertainty">0.002205 N/m</strong>
+              <strong id="standardGammaUncertainty">0.000502 N/m</strong>
             </div>
             <div>
               <span>\(U_\gamma\) 扩展不确定度</span>
-              <strong id="expandedGammaUncertainty">0.004410 N/m</strong>
+              <strong id="expandedGammaUncertainty">0.001004 N/m</strong>
             </div>
             <div>
               <span>重复次数 \(n\)</span>
@@ -945,29 +836,26 @@
             <div class="section-heading">
               <div>
                 <h2>计算展开</h2>
-                <p id="centerFormula">\( \gamma = \frac{U_1 - U_2}{2 K L} - \frac{\rho g d h}{2} \)</p>
+                <p id="centerFormula">\( \gamma = \frac{U}{2 K L} - \frac{\rho g d h}{2} \)</p>
               </div>
             </div>
-            <ol id="calculationSteps"><li>\(U_1\) 平均值 = 1.60909 mV，\(U_2\) 平均值 = -0.06273 mV，\(h\) 平均值 = 0.003590 m</li><li>\(u(U_1) = \sqrt{u_A^2(U_1)+u_B^2(U_1)}\) = 0.03724 mV</li><li>\(u(U_2) = \sqrt{u_A^2(U_2)+u_B^2(U_2)}\) = 0.03318 mV</li><li>\(u(h) = \sqrt{u_A^2(h)+u_B^2(h)}\) = 7.9101e-5 m</li><li>\(\partial\gamma/\partial U_1\) = 0.04419132，\(\partial\gamma/\partial U_2\) = -0.04419132，\(\partial\gamma/\partial h\) = -0.686000</li><li>\(u_\gamma = \sqrt{\left(\frac{\partial\gamma}{\partial U_1}\cdot u_{U_1}\right)^2 + \left(\frac{\partial\gamma}{\partial U_2}\cdot u_{U_2}\right)^2 + \left(\frac{\partial\gamma}{\partial h}\cdot u_h\right)^2}\) = 0.002205 N/m</li><li>\(U_\gamma = k_p u_\gamma\) = 0.004410 N/m</li></ol>
+            <ol id="calculationSteps"><li>\(U\) 平均值 = 1.67182 mV，\(h\) 平均值 = 0.003590 m</li><li>\(u(U) = \sqrt{u_A^2(U)+u_B^2(U)}\) = 0.01129 mV</li><li>\(u(h) = \sqrt{u_A^2(h)+u_B^2(h)}\) = 7.9101e-5 m</li><li>\(\partial\gamma/\partial U\) = 0.04419132，\(\partial\gamma/\partial h\) = -0.686000</li><li>\(u_\gamma = \sqrt{\left(\frac{\partial\gamma}{\partial U}\cdot u_U\right)^2 + \left(\frac{\partial\gamma}{\partial h}\cdot u_h\right)^2}\) = 0.000502 N/m</li><li>\(U_\gamma = k_p u_\gamma\) = 0.001004 N/m</li></ol>
           </section>
         </section>
         <aside class="panel results">
           <section class="result-hero">
             <span>结果</span>
-            <strong id="finalGamma">\(0.071417 \pm 0.004410\ \text{N/m}\)</strong>
-            <p id="finalInterval">置信区间：[0.067008 N/m, 0.075827 N/m]</p>
+            <strong id="finalGamma">\(0.071417 \pm 0.001004\ \text{N/m}\)</strong>
+            <p id="finalInterval">置信区间：[0.070413 N/m, 0.072421 N/m]</p>
           </section>
           <section class="section result-list">
             <div class="section-heading">
               <h2>各测量量不确定度</h2>
             </div>
             <dl>
-              <div><dt>\(u_A(U_1)\)</dt><dd id="uA1">0.03679 mV</dd></div>
-              <div><dt>\(u_B(U_1)\)</dt><dd id="uB1">0.00577 mV</dd></div>
-              <div><dt>\(u(U_1)\)</dt><dd id="uU1">0.03724 mV</dd></div>
-              <div><dt>\(u_A(U_2)\)</dt><dd id="uA2">0.03267 mV</dd></div>
-              <div><dt>\(u_B(U_2)\)</dt><dd id="uB2">0.00577 mV</dd></div>
-              <div><dt>\(u(U_2)\)</dt><dd id="uU2">0.03318 mV</dd></div>
+              <div><dt>\(u_A(U)\)</dt><dd id="uA">0.00971 mV</dd></div>
+              <div><dt>\(u_B(U)\)</dt><dd id="uB">0.00577 mV</dd></div>
+              <div><dt>\(u(U)\)</dt><dd id="uU">0.01129 mV</dd></div>
               <div><dt>\(u_A(h)\)</dt><dd id="uAh">7.8890e-5 m</dd></div>
               <div><dt>\(u_B(h)\)</dt><dd id="uBh">5.7735e-6 m</dd></div>
               <div><dt>\(u(h)\)</dt><dd id="uH">7.9101e-5 m</dd></div>
@@ -978,8 +866,7 @@
               <h2>偏导与传播</h2>
             </div>
             <dl>
-              <div><dt>\(\partial\gamma/\partial U_1\)</dt><dd id="partialU1">0.04419132</dd></div>
-              <div><dt>\(\partial\gamma/\partial U_2\)</dt><dd id="partialU2">-0.04419132</dd></div>
+              <div><dt>\(\partial\gamma/\partial U\)</dt><dd id="partialU">0.04419132</dd></div>
               <div><dt>\(\partial\gamma/\partial h\)</dt><dd id="partialH">-0.686000</dd></div>
               <div><dt>\(k_p\)</dt><dd id="kpValue">2.000</dd></div>
             </dl>
@@ -1010,8 +897,7 @@
           <article class="report-block">
             <h3>平均读数</h3>
             <ul>
-              <li>\(\bar{U}_1\) = 1.60909 mV</li>
-              <li>\(\bar{U}_2\) = -0.06273 mV</li>
+              <li>\(\bar{U}\) = 1.67182 mV</li>
               <li>\(\bar{h}\) = 0.003590 m</li>
               <li>\(n\) = 11</li>
             </ul>
@@ -1019,26 +905,24 @@
           <article class="report-block">
             <h3>合成标准不确定度</h3>
             <ul>
-              <li>\(u(U_1)\) = 0.03724 mV</li>
-              <li>\(u(U_2)\) = 0.03318 mV</li>
+              <li>\(u(U)\) = 0.01129 mV</li>
               <li>\(u(h)\) = 7.9101e-5 m</li>
-              <li>\(u_\gamma\) = 0.002205 N/m</li>
+              <li>\(u_\gamma\) = 0.000502 N/m</li>
             </ul>
           </article>
           <article class="report-block">
             <h3>最终结果</h3>
             <ul>
               <li>\(\bar{\gamma}\) = 0.071417 N/m</li>
-              <li>\(U_\gamma(P=0.95)\) = 0.004410 N/m</li>
-              <li>\(\gamma = (0.0714 \pm 0.0044)\ \text{N/m}\)</li>
+              <li>\(U_\gamma(P=0.95)\) = 0.001004 N/m</li>
+              <li>\(\gamma = (0.0714 \pm 0.0010)\ \text{N/m}\)</li>
             </ul>
           </article>
           <article class="report-block wide">
             <h3>公式与偏导</h3>
             <ul>
-              <li>\(\gamma = \frac{U_1 - U_2}{2 K L} - \frac{\rho g d h}{2}\)</li>
-              <li>\(\frac{\partial\gamma}{\partial U_1}\) = 0.04419132</li>
-              <li>\(\frac{\partial\gamma}{\partial U_2}\) = -0.04419132</li>
+              <li>\(\gamma = \frac{U}{2 K L} - \frac{\rho g d h}{2}\)</li>
+              <li>\(\frac{\partial\gamma}{\partial U}\) = 0.04419132</li>
               <li>\(\frac{\partial\gamma}{\partial h}\) = -0.686000</li>
             </ul>
           </article>
@@ -1046,7 +930,7 @@
             <h3>实验结论</h3>
             <p>
               按 A 类、B 类不确定度合成并进行偏导传播，最终表面张力系数为
-              <strong>\(\bar{\gamma} = 0.071417 \pm 0.004410\ \text{N/m}\)</strong>，
+              <strong>\(\bar{\gamma} = 0.071417 \pm 0.001004\ \text{N/m}\)</strong>，
               置信水平按 \(k_p = 2.000\) 处理。
             </p>
           </article>
@@ -1218,25 +1102,24 @@
         frameWidth: "0.036",
         filmThickness: "0.00014",
         coverageFactorInput: "2",
-        deltaU1: "0.01",
-        deltaU2: "0.01",
+        deltaU: "0.01",
         deltaH: "0.00001",
       };
       const sampleRows = [
-        { u1: "1.69", u2: "0.04", h: "0.00381" },
-        { u1: "1.75", u2: "0.11", h: "0.00382" },
-        { u1: "1.44", u2: "-0.19", h: "0.00337" },
-        { u1: "1.52", u2: "-0.16", h: "0.00348" },
-        { u1: "1.71", u2: "0", h: "0.00416" },
-        { u1: "1.71", u2: "0", h: "0.00339" },
-        { u1: "1.44", u2: "-0.22", h: "0.00351" },
-        { u1: "1.53", u2: "-0.14", h: "0.00348" },
-        { u1: "1.60", u2: "-0.06", h: "0.00376" },
-        { u1: "1.77", u2: "0.04", h: "0.00335" },
-        { u1: "1.54", u2: "-0.11", h: "0.00336" },
+        { u: "1.65", h: "0.00381" },
+        { u: "1.64", h: "0.00382" },
+        { u: "1.63", h: "0.00337" },
+        { u: "1.68", h: "0.00348" },
+        { u: "1.71", h: "0.00416" },
+        { u: "1.71", h: "0.00339" },
+        { u: "1.66", h: "0.00351" },
+        { u: "1.67", h: "0.00348" },
+        { u: "1.66", h: "0.00376" },
+        { u: "1.73", h: "0.00335" },
+        { u: "1.65", h: "0.00336" },
       ];
-      const blankRows = Array.from({ length: 6 }, () => ({ u1: "", u2: "", h: "" }));
-      const gammaFormulaLatex = "\\gamma = \\frac{U_1 - U_2}{2 K L} - \\frac{\\rho g d h}{2}";
+      const blankRows = Array.from({ length: 6 }, () => ({ u: "", h: "" }));
+      const gammaFormulaLatex = "\\gamma = \\frac{U}{2 K L} - \\frac{\\rho g d h}{2}";
       const paramIds = Object.keys(sampleParams);
       let rows = structuredClone(sampleRows);
       const $ = (id) => document.getElementById(id);
@@ -1282,8 +1165,7 @@
           frameWidth: numberFromInput("frameWidth"),
           filmThickness: numberFromInput("filmThickness"),
           coverageFactor: numberFromInput("coverageFactorInput", 2),
-          deltaU1: Math.abs(numberFromInput("deltaU1")),
-          deltaU2: Math.abs(numberFromInput("deltaU2")),
+          deltaU: Math.abs(numberFromInput("deltaU")),
           deltaH: Math.abs(numberFromInput("deltaH")),
         };
       }
@@ -1291,15 +1173,14 @@
         return rows
           .map((row, index) => ({
             rowIndex: index,
-            u1: parseMaybeNumber(row.u1),
-            u2: parseMaybeNumber(row.u2),
+            u: parseMaybeNumber(row.u),
             h: parseMaybeNumber(row.h),
           }))
-          .filter((row) => Number.isFinite(row.u1) && Number.isFinite(row.u2) && Number.isFinite(row.h));
+          .filter((row) => Number.isFinite(row.u) && Number.isFinite(row.h));
       }
-      function gammaValue(params, u1, u2, h) {
+      function gammaValue(params, u, h) {
         return (
-          (u1 - u2) / (2 * params.instrumentK * params.frameWidth) -
+          u / (2 * params.instrumentK * params.frameWidth) -
           (params.rho * params.gravity * params.filmThickness * h) / 2
         );
       }
@@ -1321,78 +1202,62 @@
         if (validRows.length < 2 || params.instrumentK <= 0 || params.frameWidth <= 0) {
           return invalidCalculation(params, validRows);
         }
-        const u1Values = validRows.map((row) => row.u1);
-        const u2Values = validRows.map((row) => row.u2);
+        const uValues = validRows.map((row) => row.u);
         const hValues = validRows.map((row) => row.h);
-        const u1Average = mean(u1Values);
-        const u2Average = mean(u2Values);
+        const uAverage = mean(uValues);
         const hAverage = mean(hValues);
-        const gammaAverage = gammaValue(params, u1Average, u2Average, hAverage);
-        const uA1 = uA(u1Values);
-        const uB1 = uB(params.deltaU1);
-        const uU1 = uCombine(u1Values, params.deltaU1);
-        const uA2 = uA(u2Values);
-        const uB2 = uB(params.deltaU2);
-        const uU2 = uCombine(u2Values, params.deltaU2);
+        const gammaAverage = gammaValue(params, uAverage, hAverage);
+        const uAU = uA(uValues);
+        const uBU = uB(params.deltaU);
+        const uU = uCombine(uValues, params.deltaU);
         const uAh = uA(hValues);
         const uBh = uB(params.deltaH);
         const uH = uCombine(hValues, params.deltaH);
-        const partialU1 = 1 / (2 * params.instrumentK * params.frameWidth);
-        const partialU2 = -1 / (2 * params.instrumentK * params.frameWidth);
+        const partialU = 1 / (2 * params.instrumentK * params.frameWidth);
         const partialH = -(params.rho * params.gravity * params.filmThickness) / 2;
         const standardGammaUncertainty = safeSqrt(
-          square(partialU1 * uU1) + square(partialU2 * uU2) + square(partialH * uH),
+          square(partialU * uU) + square(partialH * uH),
         );
         const expandedGammaUncertainty = params.coverageFactor * standardGammaUncertainty;
         return {
           params,
           validRows,
-          u1Average,
-          u2Average,
+          uAverage,
           hAverage,
           gammaAverage,
-          uA1,
-          uB1,
-          uU1,
-          uA2,
-          uB2,
-          uU2,
+          uAU,
+          uBU,
+          uU,
           uAh,
           uBh,
           uH,
-          partialU1,
-          partialU2,
+          partialU,
           partialH,
           standardGammaUncertainty,
           expandedGammaUncertainty,
-          rowGammas: new Map(validRows.map((row) => [row.rowIndex, gammaValue(params, row.u1, row.u2, row.h)])),
-          formula: "\\gamma = \\frac{U_1 - U_2}{2 K L} - \\frac{\\rho g d h}{2}",
+          rowGammas: new Map(validRows.map((row) => [row.rowIndex, gammaValue(params, row.u, row.h)])),
+          formula: "\\gamma = \\frac{U}{2 K L} - \\frac{\\rho g d h}{2}",
         };
       }
       function invalidCalculation(params, validRows) {
         return {
           params,
           validRows,
-          u1Average: NaN,
-          u2Average: NaN,
+          uAverage: NaN,
           hAverage: NaN,
           gammaAverage: NaN,
-          uA1: NaN,
-          uB1: Number.isFinite(params.deltaU1) ? uB(params.deltaU1) : NaN,
-          uU1: NaN,
-          uA2: NaN,
-          uB2: Number.isFinite(params.deltaU2) ? uB(params.deltaU2) : NaN,
-          uU2: NaN,
+          uAU: NaN,
+          uBU: Number.isFinite(params.deltaU) ? uB(params.deltaU) : NaN,
+          uU: NaN,
           uAh: NaN,
           uBh: Number.isFinite(params.deltaH) ? uB(params.deltaH) : NaN,
           uH: NaN,
-          partialU1: NaN,
-          partialU2: NaN,
+          partialU: NaN,
           partialH: NaN,
           standardGammaUncertainty: NaN,
           expandedGammaUncertainty: NaN,
           rowGammas: new Map(),
-          formula: "\\gamma = \\frac{U_1 - U_2}{2 K L} - \\frac{\\rho g d h}{2}",
+          formula: "\\gamma = \\frac{U}{2 K L} - \\frac{\\rho g d h}{2}",
         };
       }
       function renderRows(result) {
@@ -1401,8 +1266,7 @@
             (row, index) => `
               <tr data-row="${index}">
                 <td>${index + 1}</td>
-                <td><input type="number" step="0.001" value="${row.u1}" data-field="u1" data-index="${index}" aria-label="第${index + 1}行 U1" /></td>
-                <td><input type="number" step="0.001" value="${row.u2}" data-field="u2" data-index="${index}" aria-label="第${index + 1}行 U2" /></td>
+                <td><input type="number" step="0.001" value="${row.u}" data-field="u" data-index="${index}" aria-label="第${index + 1}行 U" /></td>
                 <td><input type="number" step="0.00001" value="${row.h}" data-field="h" data-index="${index}" aria-label="第${index + 1}行 h" /></td>
                 <td class="force-cell">${formatNumber(result.rowGammas.get(index), 6)}</td>
                 <td><button class="row-delete" data-delete="${index}" aria-label="删除第${index + 1}行">×</button></td>
@@ -1420,7 +1284,7 @@
         $("measurementBody").querySelectorAll("[data-delete]").forEach((button) => {
           button.addEventListener("click", () => {
             rows.splice(Number(button.dataset.delete), 1);
-            if (!rows.length) rows.push({ u1: "", u2: "", h: "" });
+            if (!rows.length) rows.push({ u: "", h: "" });
             calculateAndRender();
           });
         });
@@ -1438,36 +1302,30 @@
         $("centerInterval").textContent = intervalText;
         $("finalGamma").textContent = finalText;
         $("finalInterval").textContent = intervalText;
-        $("u1Average").textContent = formatVoltage(result.u1Average);
-        $("u2Average").textContent = formatVoltage(result.u2Average);
+        $("uAverage").textContent = formatVoltage(result.uAverage);
         $("hAverage").textContent = formatLength(result.hAverage);
         $("standardGammaUncertainty").textContent = formatGamma(result.standardGammaUncertainty);
         $("expandedGammaUncertainty").textContent = formatGamma(result.expandedGammaUncertainty);
         $("repeatCount").textContent = result.validRows.length ? String(result.validRows.length) : "--";
         $("formulaText").textContent = `\\(${result.formula}\\)`;
         $("centerFormula").textContent = `\\(${result.formula}\\)`;
-        $("uA1").textContent = formatVoltage(result.uA1);
-        $("uB1").textContent = formatVoltage(result.uB1);
-        $("uU1").textContent = formatVoltage(result.uU1);
-        $("uA2").textContent = formatVoltage(result.uA2);
-        $("uB2").textContent = formatVoltage(result.uB2);
-        $("uU2").textContent = formatVoltage(result.uU2);
+        $("uA").textContent = formatVoltage(result.uAU);
+        $("uB").textContent = formatVoltage(result.uBU);
+        $("uU").textContent = formatVoltage(result.uU);
         $("uAh").textContent = formatLength(result.uAh);
         $("uBh").textContent = formatLength(result.uBh);
         $("uH").textContent = formatLength(result.uH);
-        $("partialU1").textContent = formatNumber(result.partialU1, 8);
-        $("partialU2").textContent = formatNumber(result.partialU2, 8);
+        $("partialU").textContent = formatNumber(result.partialU, 8);
         $("partialH").textContent = formatNumber(result.partialH, 6);
         $("kpValue").textContent = formatNumber(result.params.coverageFactor, 3);
       }
       function renderCalculationSteps(result) {
         const steps = [
-          `\\(U_1\\) 平均值 = ${formatVoltage(result.u1Average)}，\\(U_2\\) 平均值 = ${formatVoltage(result.u2Average)}，\\(h\\) 平均值 = ${formatLength(result.hAverage)}`,
-          `\\(u(U_1) = \\sqrt{u_A^2(U_1)+u_B^2(U_1)}\\) = ${formatVoltage(result.uU1)}`,
-          `\\(u(U_2) = \\sqrt{u_A^2(U_2)+u_B^2(U_2)}\\) = ${formatVoltage(result.uU2)}`,
+          `\\(U\\) 平均值 = ${formatVoltage(result.uAverage)}，\\(h\\) 平均值 = ${formatLength(result.hAverage)}`,
+          `\\(u(U) = \\sqrt{u_A^2(U)+u_B^2(U)}\\) = ${formatVoltage(result.uU)}`,
           `\\(u(h) = \\sqrt{u_A^2(h)+u_B^2(h)}\\) = ${formatLength(result.uH)}`,
-          `\\(\\partial\\gamma/\\partial U_1\\) = ${formatNumber(result.partialU1, 8)}，\\(\\partial\\gamma/\\partial U_2\\) = ${formatNumber(result.partialU2, 8)}，\\(\\partial\\gamma/\\partial h\\) = ${formatNumber(result.partialH, 6)}`,
-          `\\(u_\\gamma = \\sqrt{\\left(\\frac{\\partial\\gamma}{\\partial U_1}\\cdot u_{U_1}\\right)^2 + \\left(\\frac{\\partial\\gamma}{\\partial U_2}\\cdot u_{U_2}\\right)^2 + \\left(\\frac{\\partial\\gamma}{\\partial h}\\cdot u_h\\right)^2}\\) = ${formatGamma(result.standardGammaUncertainty)}`,
+          `\\(\\partial\\gamma/\\partial U\\) = ${formatNumber(result.partialU, 8)}，\\(\\partial\\gamma/\\partial h\\) = ${formatNumber(result.partialH, 6)}`,
+          `\\(u_\\gamma = \\sqrt{\\left(\\frac{\\partial\\gamma}{\\partial U}\\cdot u_U\\right)^2 + \\left(\\frac{\\partial\\gamma}{\\partial h}\\cdot u_h\\right)^2}\\) = ${formatGamma(result.standardGammaUncertainty)}`,
           `\\(U_\\gamma = k_p u_\\gamma\\) = ${formatGamma(result.expandedGammaUncertainty)}`,
         ];
         $("calculationSteps").innerHTML = steps.map((step) => `<li>${step}</li>`).join("");
@@ -1493,8 +1351,7 @@
           <article class="report-block">
             <h3>平均读数</h3>
             <ul>
-              <li>\\(\\bar{U}_1\\) = ${formatVoltage(result.u1Average)}</li>
-              <li>\\(\\bar{U}_2\\) = ${formatVoltage(result.u2Average)}</li>
+              <li>\\(\\bar{U}\\) = ${formatVoltage(result.uAverage)}</li>
               <li>\\(\\bar{h}\\) = ${formatLength(result.hAverage)}</li>
               <li>\\(n\\) = ${result.validRows.length || "--"}</li>
             </ul>
@@ -1502,8 +1359,7 @@
           <article class="report-block">
             <h3>合成标准不确定度</h3>
             <ul>
-              <li>\\(u(U_1)\\) = ${formatVoltage(result.uU1)}</li>
-              <li>\\(u(U_2)\\) = ${formatVoltage(result.uU2)}</li>
+              <li>\\(u(U)\\) = ${formatVoltage(result.uU)}</li>
               <li>\\(u(h)\\) = ${formatLength(result.uH)}</li>
               <li>\\(u_\\gamma\\) = ${formatGamma(result.standardGammaUncertainty)}</li>
             </ul>
@@ -1520,8 +1376,7 @@
             <h3>公式与偏导</h3>
             <ul>
               <li>\\(${gammaFormulaLatex}\\)</li>
-              <li>\\(\\frac{\\partial\\gamma}{\\partial U_1} = ${formatNumber(result.partialU1, 8)}\\)</li>
-              <li>\\(\\frac{\\partial\\gamma}{\\partial U_2} = ${formatNumber(result.partialU2, 8)}\\)</li>
+              <li>\\(\\frac{\\partial\\gamma}{\\partial U} = ${formatNumber(result.partialU, 8)}\\)</li>
               <li>\\(\\frac{\\partial\\gamma}{\\partial h} = ${formatNumber(result.partialH, 6)}\\)</li>
             </ul>
           </article>
@@ -1568,7 +1423,7 @@
           $(id).addEventListener("input", calculateAndRender);
         });
         $("addRowBtn").addEventListener("click", () => {
-          rows.push({ u1: "", u2: "", h: "" });
+          rows.push({ u: "", h: "" });
           calculateAndRender();
         });
         $("clearRowsBtn").addEventListener("click", () => {
