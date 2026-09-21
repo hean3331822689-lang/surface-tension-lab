@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <!-- saved from url=(0058)https://hean3331822689-lang.github.io/surface-tension-lab/ -->
 <html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -152,6 +152,49 @@
       .quiz-page .topbar {
         padding-left: 0;
         padding-right: 0;
+      }
+      .identity-page {
+        max-width: 560px;
+        margin: 0 auto 36px;
+        padding: 0 clamp(16px, 3vw, 36px);
+      }
+      .identity-page .topbar {
+        padding-left: 0;
+        padding-right: 0;
+      }
+      .identity-card {
+        padding: 22px;
+      }
+      .identity-intro {
+        margin-bottom: 18px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.7;
+      }
+      .identity-form {
+        display: grid;
+        gap: 16px;
+      }
+      .identity-form .field input {
+        min-height: 44px;
+        font-size: 16px;
+      }
+      .identity-notice {
+        margin: 0;
+        padding: 11px 12px;
+        color: var(--muted);
+        background: var(--surface-soft);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        font-size: 12px;
+        line-height: 1.6;
+      }
+      .identity-error {
+        min-height: 20px;
+        margin: -4px 0 0;
+        color: var(--danger);
+        font-size: 13px;
+        line-height: 1.5;
       }
       .quiz-intro {
         padding: 18px;
@@ -592,7 +635,31 @@
     <script id="MathJax-script" async src="mathjax.js"></script>
   </head>
   <body data-new-gr-c-s-check-loaded="14.1311.0" data-gr-ext-installed="">
-    <section id="quizGate" class="quiz-page">
+    <section id="identityGate" class="identity-page">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Physics Competition Lab Tool</p>
+          <h1>实验数据处理工具</h1>
+        </div>
+      </header>
+      <div class="identity-card panel">
+        <p class="identity-intro">请填写姓名和学号后进入实验基础知识考核。</p>
+        <form id="identityForm" class="identity-form" novalidate>
+          <label class="field">
+            <span>姓名</span>
+            <input id="studentName" name="studentName" type="text" maxlength="30" autocomplete="name" inputmode="text" placeholder="请输入姓名" required>
+          </label>
+          <label class="field">
+            <span>学号</span>
+            <input id="studentId" name="studentId" type="text" maxlength="24" autocomplete="off" inputmode="numeric" pattern="[0-9]*" placeholder="请输入学号" required>
+          </label>
+          <p class="identity-notice">姓名和学号仅用于本次页面进入校验，不上传、不联网保存，关闭页面后即不再保留。</p>
+          <p id="identityError" class="identity-error" role="alert" aria-live="polite"></p>
+          <button id="enterQuizBtn" type="submit" disabled>进入考核</button>
+        </form>
+      </div>
+    </section>
+    <section id="quizGate" class="quiz-page hidden">
       <header class="topbar">
         <h1>测量不确定度基础知识考核</h1>
       </header>
@@ -784,11 +851,12 @@
           <div class="section-heading">
             <div>
               <h2>多次测量数据</h2>
-              <p>输入每次测量的 \(U\) 和 \(h\)，网页按平均读数计算 \(\gamma\)，并按偏导传播合成不确定度。</p>
+              <p>输入每次测量的 \(U\) 和 \(h\)。表格中的 \(h\) 以 \(10^{-3}\,\mathrm m\) 为单位，输入 3.96 即按 0.00396 m 计算。</p>
             </div>
             <div class="inline-actions">
               <button id="addRowBtn" class="secondary">添加一行</button>
               <button id="clearRowsBtn" class="ghost">清空</button>
+              <button id="confirmBtn" type="button">确认</button>
             </div>
           </div>
           <div class="table-wrap">
@@ -797,7 +865,7 @@
                 <tr>
                   <th>#</th>
                   <th>\(U / \mathrm{mV}\)</th>
-                  <th>\(h / \mathrm{m}\)</th>
+                  <th>\(h / (10^{-3}\,\mathrm{m})\)</th>
                   <th>\(\gamma_i / \mathrm{N}\cdot\mathrm{m}^{-1}\)</th>
                   <th></th>
                 </tr>
@@ -1094,6 +1162,67 @@
         renderQuiz();
         updateQuizActions();
       }
+      // 计算辅助：中间量不修约，最终十进制half-even修约。
+  const T95 = {1:12.706,2:4.303,3:3.182,4:2.776,5:2.571,6:2.447,7:2.365,8:2.306,
+    9:2.262,10:2.228,11:2.201,12:2.179,13:2.160,14:2.145,15:2.131,16:2.120,
+    17:2.110,18:2.101,19:2.093,20:2.086,21:2.080,22:2.074,23:2.069,24:2.064,
+    25:2.060,26:2.056,27:2.052,28:2.048,29:2.045,30:2.042,40:2.021,60:2.000,120:1.980};
+  function effectiveDof(components) {
+    // 先以最大贡献归一化，避免四次方在极小数时下溢。
+    const scale=Math.max(0,...components.map(c=>Math.abs(c.u)));if(scale===0)return Infinity;
+    const sum=components.reduce((s,c)=>s+(c.u/scale)**2,0);
+    const den=components.reduce((s,c)=>s+(Number.isFinite(c.df)?(c.u/scale)**4/c.df:0),0);
+    return den===0?Infinity:sum**2/den;
+  }
+  function coverage95(df) {
+    if(df===Infinity) return 1.960;
+    // 仅消除浮点舍入噪声，例如数学上6被算成5.999999999999999；不修约真实小数自由度。
+    const nearest=Math.round(df);
+    if(Math.abs(df-nearest)<=16*Number.EPSILON*Math.max(1,Math.abs(df)))df=nearest;
+    if(!Number.isFinite(df)||df<1) throw Error('有效自由度必须 ≥1。');
+    // 稀疏 t 表保守取不超过 floor(νeff) 的最大表行；有限大自由度仍取120行。
+    const key=Math.max(...Object.keys(T95).map(Number).filter(v=>v<=Math.floor(df)));
+    return T95[key];
+  }
+
+  function decimalParts(value) {
+    let s=String(value).toLowerCase(),negative=s.startsWith('-');s=s.replace(/^[+-]/,'');
+    const [mant,ex='0']=s.split('e'),[whole,frac='']=mant.split('.');
+    if(!/^\d+$/.test(whole+frac)) throw Error('非有限十进制数');
+    return {negative,digits:BigInt(whole+frac),power:Number(ex)-frac.length};
+  }
+  function quantizedInteger(value,place) {
+    const {negative,digits,power}=decimalParts(value),shift=power-place;
+    let q;
+    if(shift>=0) q=digits*10n**BigInt(shift);
+    else {const den=10n**BigInt(-shift),base=digits/den,rem=digits%den;
+      q=base+(rem*2n>den || (rem*2n===den && base%2n===1n)?1n:0n);}
+    return negative&&q!==0n?-q:q;
+  }
+  function formatAt(value,place) {
+    const q=quantizedInteger(value,place),negative=q<0n;
+    let s=(negative?-q:q).toString();
+    if(place>=0) s+='0'.repeat(place);
+    else {s=s.padStart(1-place,'0');const cut=s.length+place;s=s.slice(0,cut)+'.'+s.slice(cut);}
+    return (negative?'-':'')+s;
+  }
+  function roundPair(value,u,digits=2) {
+    if(!Number.isFinite(value)||!Number.isFinite(u)||u<=0) return null;
+    let place=Math.floor(Math.log10(u))-digits+1;
+    const provisional=Number(quantizedInteger(u,place))*10**place;
+    const next=Math.floor(Math.log10(provisional))-digits+1;
+    if(next>place) place=next; // 9.99→10 时重算末位；从原值再做一次直接修约。
+    return {value:formatAt(value,place),uncertainty:formatAt(u,place),place};
+  }
+
+  function reportPair(result) {
+    return roundPair(result.gammaAverage,result.expandedGammaUncertainty) || {value:"--",uncertainty:"--"};
+  }
+  function formatUncertainty(value) {
+    const pair=roundPair(0,value);
+    return pair ? `${pair.uncertainty} N/m` : "--";
+  }
+
       // 主工具计算区
       const sampleParams = {
         rho: "1000",
@@ -1106,17 +1235,17 @@
         deltaH: "0.00001",
       };
       const sampleRows = [
-        { u: "1.65", h: "0.00381" },
-        { u: "1.64", h: "0.00382" },
-        { u: "1.63", h: "0.00337" },
-        { u: "1.68", h: "0.00348" },
-        { u: "1.71", h: "0.00416" },
-        { u: "1.71", h: "0.00339" },
-        { u: "1.66", h: "0.00351" },
-        { u: "1.67", h: "0.00348" },
-        { u: "1.66", h: "0.00376" },
-        { u: "1.73", h: "0.00335" },
-        { u: "1.65", h: "0.00336" },
+        { u: "1.65", h: "3.81" },
+        { u: "1.64", h: "3.82" },
+        { u: "1.63", h: "3.37" },
+        { u: "1.68", h: "3.48" },
+        { u: "1.71", h: "4.16" },
+        { u: "1.71", h: "3.39" },
+        { u: "1.66", h: "3.51" },
+        { u: "1.67", h: "3.48" },
+        { u: "1.66", h: "3.76" },
+        { u: "1.73", h: "3.35" },
+        { u: "1.65", h: "3.36" },
       ];
       const blankRows = Array.from({ length: 6 }, () => ({ u: "", h: "" }));
       const gammaFormulaLatex = "\\gamma = \\frac{U}{2 K L} - \\frac{\\rho g d h}{2}";
@@ -1126,13 +1255,15 @@
       const square = (value) => value * value;
       const safeSqrt = (value) => Math.sqrt(Math.max(0, value));
       const mean = (values) => values.reduce((sum, value) => sum + value, 0) / values.length;
-      function numberFromInput(id, fallback = 0) {
-        const value = Number($(id).value);
+      function numberFromInput(id, fallback = NaN) {
+        const value = parseMaybeNumber($(id).value);
         return Number.isFinite(value) ? value : fallback;
       }
       function parseMaybeNumber(value) {
-        const parsed = Number(String(value).trim());
-        return Number.isFinite(parsed) ? parsed : NaN;
+        const text = String(value).trim();
+        if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text)) return NaN;
+        const number = Number(text);
+        return Number.isFinite(number) ? number : NaN;
       }
       function formatNumber(value, digits = 6) {
         if (!Number.isFinite(value)) return "--";
@@ -1154,8 +1285,9 @@
         return Number.isFinite(value) ? `${formatNumber(value, 4)} N/m` : "--";
       }
       function formatInterval(meanValue, expanded) {
-        if (!Number.isFinite(meanValue) || !Number.isFinite(expanded)) return "等待有效数据";
-        return `[${formatGamma(meanValue - expanded)}, ${formatGamma(meanValue + expanded)}]`;
+        const pair = roundPair(meanValue, expanded);
+        if (!pair) return "等待有效数据";
+        return `[${formatAt(meanValue-expanded, pair.place)} N/m, ${formatAt(meanValue+expanded, pair.place)} N/m]`;
       }
       function getParams() {
         return {
@@ -1165,8 +1297,8 @@
           frameWidth: numberFromInput("frameWidth"),
           filmThickness: numberFromInput("filmThickness"),
           coverageFactor: numberFromInput("coverageFactorInput", 2),
-          deltaU: Math.abs(numberFromInput("deltaU")),
-          deltaH: Math.abs(numberFromInput("deltaH")),
+          deltaU: numberFromInput("deltaU"),
+          deltaH: numberFromInput("deltaH"),
         };
       }
       function getValidRows() {
@@ -1174,7 +1306,7 @@
           .map((row, index) => ({
             rowIndex: index,
             u: parseMaybeNumber(row.u),
-            h: parseMaybeNumber(row.h),
+            h: parseMaybeNumber(row.h) * 1e-3,
           }))
           .filter((row) => Number.isFinite(row.u) && Number.isFinite(row.h));
       }
@@ -1199,29 +1331,68 @@
       function calculate() {
         const params = getParams();
         const validRows = getValidRows();
-        if (validRows.length < 2 || params.instrumentK <= 0 || params.frameWidth <= 0) {
-          return invalidCalculation(params, validRows);
+        const enteredRows = rows.filter(row => String(row.u).trim() || String(row.h).trim());
+        const values = [params.rho, params.gravity, params.instrumentK, params.frameWidth,
+          params.filmThickness, params.deltaU, params.deltaH];
+        if (validRows.length < 1 || validRows.length !== enteredRows.length ||
+            !values.every(Number.isFinite) || params.instrumentK <= 0 || params.frameWidth <= 0 ||
+            params.rho <= 0 || params.gravity <= 0 || params.filmThickness < 0 ||
+            params.deltaU < 0 || params.deltaH < 0 || validRows.some(row => row.h < 0)) {
+          return invalidCalculation(params, []);
         }
         const uValues = validRows.map((row) => row.u);
         const hValues = validRows.map((row) => row.h);
         const uAverage = mean(uValues);
         const hAverage = mean(hValues);
         const gammaAverage = gammaValue(params, uAverage, hAverage);
-        const uAU = uA(uValues);
+        const completeUncertainty = validRows.length >= 2;
+        const uAU = completeUncertainty ? uA(uValues) : NaN;
         const uBU = uB(params.deltaU);
-        const uU = uCombine(uValues, params.deltaU);
-        const uAh = uA(hValues);
+        const uU = completeUncertainty ? uCombine(uValues, params.deltaU) : NaN;
+        const uAh = completeUncertainty ? uA(hValues) : NaN;
         const uBh = uB(params.deltaH);
-        const uH = uCombine(hValues, params.deltaH);
+        const uH = completeUncertainty ? uCombine(hValues, params.deltaH) : NaN;
         const partialU = 1 / (2 * params.instrumentK * params.frameWidth);
         const partialH = -(params.rho * params.gravity * params.filmThickness) / 2;
-        const standardGammaUncertainty = safeSqrt(
-          square(partialU * uU) + square(partialH * uH),
-        );
-        const expandedGammaUncertainty = params.coverageFactor * standardGammaUncertainty;
+        // U、h必须来自同次测量。由逐对γ统计A类，保留样本协方差，不能再重复加入uAU、uAh。
+        const rowGammaValues = validRows.map(row => gammaValue(params, row.u, row.h));
+        const pairedA = completeUncertainty ? uA(rowGammaValues) : NaN;
+        // 代码层面的输入不确定度配置：沿用先前允差±0.01 mm；不新增页面输入项。
+        // K、ρ、g仍按原界面的给定常数处理；没有标定资料，不虚构它们的不确定度。
+        // 此结果仅在这些模型假设下成立，不是这些来源已被实测证实为零。
+        const deltaL = 0.00001, deltaD = 0.00001; // m，矩形最大允差半宽
+        const standardK = 0, standardRho = 0, standardG = 0, dofK = Infinity;
+        const partialK = -uAverage / (2 * square(params.instrumentK) * params.frameWidth);
+        const partialL = -uAverage / (2 * params.instrumentK * square(params.frameWidth));
+        const partialD = -params.rho * params.gravity * hAverage / 2;
+        const partialRho = -params.gravity * params.filmThickness * hAverage / 2;
+        const partialG = -params.rho * params.filmThickness * hAverage / 2;
+        if (!Number.isFinite(gammaAverage)) {
+          return invalidCalculation(params, []);
+        }
+        let standardGammaUncertainty = NaN;
+        let expandedGammaUncertainty = NaN;
+        if (completeUncertainty) {
+          const components = [
+            {u: pairedA, df: validRows.length - 1},
+            {u: partialU * uBU, df: Infinity}, {u: partialH * uBh, df: Infinity},
+            {u: partialL * uB(deltaL), df: Infinity}, {u: partialD * uB(deltaD), df: Infinity},
+            {u: partialK * standardK, df: dofK},
+            {u: partialRho * standardRho, df: Infinity}, {u: partialG * standardG, df: Infinity},
+          ];
+          standardGammaUncertainty = Math.hypot(...components.map(item => item.u));
+          if (!Number.isFinite(standardGammaUncertainty) || standardGammaUncertainty <= 0 ||
+              !components.every(item => Number.isFinite(item.u))) {
+            return invalidCalculation(params, []);
+          }
+          params.coverageFactor = coverage95(effectiveDof(components));
+          $("coverageFactorInput").value = String(params.coverageFactor);
+          expandedGammaUncertainty = params.coverageFactor * standardGammaUncertainty;
+        }
         return {
           params,
           validRows,
+          completeUncertainty,
           uAverage,
           hAverage,
           gammaAverage,
@@ -1243,6 +1414,7 @@
         return {
           params,
           validRows,
+          completeUncertainty: false,
           uAverage: NaN,
           hAverage: NaN,
           gammaAverage: NaN,
@@ -1267,7 +1439,7 @@
               <tr data-row="${index}">
                 <td>${index + 1}</td>
                 <td><input type="number" step="0.001" value="${row.u}" data-field="u" data-index="${index}" aria-label="第${index + 1}行 U" /></td>
-                <td><input type="number" step="0.00001" value="${row.h}" data-field="h" data-index="${index}" aria-label="第${index + 1}行 h" /></td>
+                <td><input type="number" step="0.01" value="${row.h}" data-field="h" data-index="${index}" aria-label="第${index + 1}行 h，单位10的负三次方米" /></td>
                 <td class="force-cell">${formatNumber(result.rowGammas.get(index), 6)}</td>
                 <td><button class="row-delete" data-delete="${index}" aria-label="删除第${index + 1}行">×</button></td>
               </tr>
@@ -1278,7 +1450,6 @@
           input.addEventListener("input", (event) => {
             const target = event.target;
             rows[Number(target.dataset.index)][target.dataset.field] = target.value;
-            calculateAndRender();
           });
         });
         $("measurementBody").querySelectorAll("[data-delete]").forEach((button) => {
@@ -1290,13 +1461,16 @@
         });
       }
       function updateText(result) {
-        const finalText =
-          Number.isFinite(result.gammaAverage) && Number.isFinite(result.expandedGammaUncertainty)
-            ? `\\(${formatNumber(result.gammaAverage, 6)} \\pm ${formatNumber(result.expandedGammaUncertainty, 6)}\\ \\text{N/m}\\)`
+        const hasGamma = Number.isFinite(result.gammaAverage);
+        const finalText = result.completeUncertainty
+          ? `\\(${reportPair(result).value} \\pm ${reportPair(result).uncertainty}\\ \\text{N/m}\\)`
+          : hasGamma
+            ? `\\(\\gamma = ${formatNumber(result.gammaAverage, 6)}\\ \\text{N/m}\\)`
             : "--";
-        const intervalText =
-          Number.isFinite(result.gammaAverage) && Number.isFinite(result.expandedGammaUncertainty)
-            ? `置信区间：${formatInterval(result.gammaAverage, result.expandedGammaUncertainty)}`
+        const intervalText = result.completeUncertainty
+          ? `置信区间：${formatInterval(result.gammaAverage, result.expandedGammaUncertainty)}`
+          : hasGamma
+            ? "已计算单次测量的 γ；至少需要2组完整数据才能评定A类及完整不确定度。"
             : "等待有效数据";
         $("centerGamma").textContent = finalText;
         $("centerInterval").textContent = intervalText;
@@ -1304,8 +1478,8 @@
         $("finalInterval").textContent = intervalText;
         $("uAverage").textContent = formatVoltage(result.uAverage);
         $("hAverage").textContent = formatLength(result.hAverage);
-        $("standardGammaUncertainty").textContent = formatGamma(result.standardGammaUncertainty);
-        $("expandedGammaUncertainty").textContent = formatGamma(result.expandedGammaUncertainty);
+        $("standardGammaUncertainty").textContent = formatUncertainty(result.standardGammaUncertainty);
+        $("expandedGammaUncertainty").textContent = formatUncertainty(result.expandedGammaUncertainty);
         $("repeatCount").textContent = result.validRows.length ? String(result.validRows.length) : "--";
         $("formulaText").textContent = `\\(${result.formula}\\)`;
         $("centerFormula").textContent = `\\(${result.formula}\\)`;
@@ -1317,7 +1491,7 @@
         $("uH").textContent = formatLength(result.uH);
         $("partialU").textContent = formatNumber(result.partialU, 8);
         $("partialH").textContent = formatNumber(result.partialH, 6);
-        $("kpValue").textContent = formatNumber(result.params.coverageFactor, 3);
+        $("kpValue").textContent = result.completeUncertainty ? formatNumber(result.params.coverageFactor, 3) : "--";
       }
       function renderCalculationSteps(result) {
         const steps = [
@@ -1325,15 +1499,33 @@
           `\\(u(U) = \\sqrt{u_A^2(U)+u_B^2(U)}\\) = ${formatVoltage(result.uU)}`,
           `\\(u(h) = \\sqrt{u_A^2(h)+u_B^2(h)}\\) = ${formatLength(result.uH)}`,
           `\\(\\partial\\gamma/\\partial U\\) = ${formatNumber(result.partialU, 8)}，\\(\\partial\\gamma/\\partial h\\) = ${formatNumber(result.partialH, 6)}`,
-          `\\(u_\\gamma = \\sqrt{\\left(\\frac{\\partial\\gamma}{\\partial U}\\cdot u_U\\right)^2 + \\left(\\frac{\\partial\\gamma}{\\partial h}\\cdot u_h\\right)^2}\\) = ${formatGamma(result.standardGammaUncertainty)}`,
-          `\\(U_\\gamma = k_p u_\\gamma\\) = ${formatGamma(result.expandedGammaUncertainty)}`,
+          `\\(u_\\gamma = \\sqrt{u_A^2(\\bar{\\gamma})+\\sum_j(c_j u_{B,j})^2}\\) = ${formatUncertainty(result.standardGammaUncertainty)}`,
+          `\\(U_\\gamma = k_p u_\\gamma\\) = ${formatUncertainty(result.expandedGammaUncertainty)}`,
         ];
+        if (Number.isFinite(result.gammaAverage) && !result.completeUncertainty) {
+          steps.push("当前仅有1组完整数据：已计算 γ，但不将缺失的重复性信息假定为零。请增加至少1组数据后再评定标准不确定度和扩展不确定度。");
+        }
         $("calculationSteps").innerHTML = steps.map((step) => `<li>${step}</li>`).join("");
       }
       function renderReport(result) {
         const { params } = result;
-        const gammaVal = Number.isFinite(result.gammaAverage) ? formatNumber(result.gammaAverage, 4) : "--";
-        const expandedVal = Number.isFinite(result.expandedGammaUncertainty) ? formatNumber(result.expandedGammaUncertainty, 4) : "--";
+        const hasGamma = Number.isFinite(result.gammaAverage);
+        const gammaVal = result.completeUncertainty ? reportPair(result).value : hasGamma ? formatNumber(result.gammaAverage, 6) : "--";
+        const expandedVal = Number.isFinite(result.expandedGammaUncertainty) ? reportPair(result).uncertainty : "--";
+        const finalResultItems = result.completeUncertainty
+          ? `<li>\\(\\bar{\\gamma}\\) = ${gammaVal} N/m</li>
+              <li>\\(U_\\gamma(P=0.95)\\) = ${formatUncertainty(result.expandedGammaUncertainty)}</li>
+              <li>\\(\\gamma = (${gammaVal} \\pm ${expandedVal})\\ \\text{N/m}\\)</li>`
+          : hasGamma
+            ? `<li>\\(\\gamma\\) = ${gammaVal} N/m</li><li>仅1组数据，完整不确定度暂不评定。</li>`
+            : `<li>等待有效数据</li>`;
+        const conclusion = result.completeUncertainty
+          ? `按 A 类、B 类不确定度合成并进行偏导传播，最终表面张力系数为
+              <strong>\\(\\bar{\\gamma} = ${gammaVal} \\pm ${expandedVal}\\ \\text{N/m}\\)</strong>，
+              置信水平按 \\(k_p = ${formatNumber(params.coverageFactor, 3)}\\) 处理。`
+          : hasGamma
+            ? `单次测量计算得到 <strong>\\(\\gamma = ${gammaVal}\\ \\text{N/m}\\)</strong>。当前缺少重复测量，不能评定A类及完整不确定度。`
+            : "等待有效数据。";
         $("reportContent").innerHTML = `
           <article class="report-block">
             <h3>实验常数</h3>
@@ -1344,7 +1536,7 @@
                 <tr><td>\\(K\\)</td><td>${formatNumber(params.instrumentK, 2)} mV/N</td></tr>
                 <tr><td>\\(L\\)</td><td>${formatNumber(params.frameWidth, 6)} m</td></tr>
                 <tr><td>\\(d\\)</td><td>${formatNumber(params.filmThickness, 6)} m</td></tr>
-                <tr><td>\\(k_p\\)</td><td>${formatNumber(params.coverageFactor, 3)}</td></tr>
+                <tr><td>\\(k_p\\)</td><td>${result.completeUncertainty ? formatNumber(params.coverageFactor, 3) : "--"}</td></tr>
               </tbody>
             </table>
           </article>
@@ -1361,15 +1553,13 @@
             <ul>
               <li>\\(u(U)\\) = ${formatVoltage(result.uU)}</li>
               <li>\\(u(h)\\) = ${formatLength(result.uH)}</li>
-              <li>\\(u_\\gamma\\) = ${formatGamma(result.standardGammaUncertainty)}</li>
+              <li>\\(u_\\gamma\\) = ${formatUncertainty(result.standardGammaUncertainty)}</li>
             </ul>
           </article>
           <article class="report-block">
             <h3>最终结果</h3>
             <ul>
-              <li>\\(\\bar{\\gamma}\\) = ${formatGamma(result.gammaAverage)}</li>
-              <li>\\(U_\\gamma(P=0.95)\\) = ${formatGamma(result.expandedGammaUncertainty)}</li>
-              <li>\\(\\gamma = (${gammaVal} \\pm ${expandedVal})\\ \\text{N/m}\\)</li>
+              ${finalResultItems}
             </ul>
           </article>
           <article class="report-block wide">
@@ -1382,11 +1572,7 @@
           </article>
           <article class="report-block wide">
             <h3>实验结论</h3>
-            <p>
-              按 A 类、B 类不确定度合成并进行偏导传播，最终表面张力系数为
-              <strong>\\(\\bar{\\gamma} = ${formatNumber(result.gammaAverage, 6)} \\pm ${formatNumber(result.expandedGammaUncertainty, 6)}\\ \\text{N/m}\\)</strong>，
-              置信水平按 \\(k_p = ${formatNumber(params.coverageFactor, 3)}\\) 处理。
-            </p>
+            <p>${conclusion}</p>
           </article>
         `;
       }
@@ -1412,16 +1598,42 @@
         loadSample();
       }
       // 显隐控制区
+      function identityFieldsFilled() {
+        const name = document.getElementById("studentName").value.trim();
+        const studentId = document.getElementById("studentId").value.trim();
+        return name.length > 0 && studentId.length > 0;
+      }
+      function identityIsValid() {
+        const name = document.getElementById("studentName").value.trim();
+        const studentId = document.getElementById("studentId").value.trim();
+        return name === "张三" && studentId === "202612345678";
+      }
+      function updateIdentityActions() {
+        document.getElementById("enterQuizBtn").disabled = !identityFieldsFilled();
+        document.getElementById("identityError").textContent = "";
+      }
+      function enterQuiz(event) {
+        event.preventDefault();
+        if (!identityIsValid()) {
+          document.getElementById("identityError").textContent = "姓名或学号不正确，请核对后重试。";
+          return;
+        }
+        document.getElementById("identityGate").classList.add("hidden");
+        document.getElementById("quizGate").classList.remove("hidden");
+        window.scrollTo({ top: 0, behavior: "instant" });
+        typesetMath();
+      }
       function enterMainTool() {
         document.getElementById("quizGate").classList.add("hidden");
         document.getElementById("mainTool").classList.remove("hidden");
       }
       function bindEvents() {
+        document.getElementById("identityForm").addEventListener("submit", enterQuiz);
+        document.getElementById("studentName").addEventListener("input", updateIdentityActions);
+        document.getElementById("studentId").addEventListener("input", updateIdentityActions);
         document.getElementById("submitQuizBtn").addEventListener("click", submitQuiz);
         document.getElementById("enterToolBtn").addEventListener("click", enterMainTool);
-        paramIds.forEach((id) => {
-          $(id).addEventListener("input", calculateAndRender);
-        });
+        $("confirmBtn").addEventListener("click", calculateAndRender);
         $("addRowBtn").addEventListener("click", () => {
           rows.push({ u: "", h: "" });
           calculateAndRender();
@@ -1445,6 +1657,7 @@
       }
       renderQuiz();
       updateQuizActions();
+      updateIdentityActions();
       setInputValues(sampleParams);
       bindEvents();
       calculateAndRender();
