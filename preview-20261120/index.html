@@ -1,0 +1,1507 @@
+
+<!DOCTYPE html>
+<!-- saved from url=(0058)https://hean3331822689-lang.github.io/surface-tension-lab/ -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>液体表面张力系数测量实验数据处理</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f8fc;
+        --surface: #ffffff;
+        --surface-soft: #f8fbff;
+        --line: #d8e2f0;
+        --text: #132238;
+        --muted: #64748b;
+        --primary: #2563eb;
+        --primary-dark: #1e3a8a;
+        --primary-soft: #e8f1ff;
+        --success: #16a34a;
+        --success-soft: #ecfdf5;
+        --danger: #dc2626;
+        --danger-soft: #fef2f2;
+        --shadow: 0 18px 50px rgba(30, 58, 138, 0.08);
+        font-family:
+          "Microsoft YaHei",
+          "PingFang SC",
+          "Segoe UI",
+          Arial,
+          sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        min-width: 320px;
+        margin: 0;
+        color: var(--text);
+        background:
+          linear-gradient(180deg, #eef5ff 0, rgba(238, 245, 255, 0) 360px),
+          var(--bg);
+      }
+      button,
+      select,
+      input {
+        font: inherit;
+      }
+      button {
+        border: 0;
+        border-radius: 6px;
+        padding: 9px 14px;
+        color: #fff;
+        background: var(--primary);
+        cursor: pointer;
+      }
+      button:hover {
+        background: #1d4ed8;
+      }
+      button:disabled {
+        color: #94a3b8;
+        background: #e2e8f0;
+        cursor: not-allowed;
+      }
+      button.secondary {
+        color: var(--primary-dark);
+        background: var(--primary-soft);
+        border: 1px solid #bed4fb;
+      }
+      button.ghost {
+        color: var(--muted);
+        background: transparent;
+        border: 1px solid var(--line);
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+      h1 {
+        margin-bottom: 0;
+        color: var(--primary-dark);
+        font-size: clamp(24px, 3vw, 34px);
+        line-height: 1.2;
+        letter-spacing: 0;
+      }
+      h2 {
+        margin-bottom: 0;
+        font-size: 16px;
+        line-height: 1.35;
+      }
+      h3 {
+        margin-bottom: 0;
+        font-size: 14px;
+        line-height: 1.35;
+      }
+      .hidden {
+        display: none !important;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        padding: 28px clamp(16px, 3vw, 36px) 18px;
+      }
+      .eyebrow {
+        margin: 0 0 6px;
+        color: var(--primary);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+      .topbar-actions,
+      .inline-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+      .panel {
+        background: rgba(255, 255, 255, 0.96);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+      .section {
+        padding: 18px;
+        border-bottom: 1px solid var(--line);
+      }
+      .section:last-child {
+        border-bottom: 0;
+      }
+      .section-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+      .section-heading p,
+      .muted {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+      .quiz-page {
+        max-width: 980px;
+        margin: 0 auto 36px;
+        padding: 0 clamp(16px, 3vw, 36px);
+      }
+      .quiz-page .topbar {
+        padding-left: 0;
+        padding-right: 0;
+      }
+      .quiz-intro {
+        padding: 18px;
+        border-radius: 8px;
+        color: var(--text);
+        background: #f1f5f9;
+        border: 1px solid var(--line);
+        line-height: 1.7;
+      }
+      .question-list {
+        display: grid;
+        gap: 14px;
+        margin-top: 16px;
+      }
+      .question-card {
+        padding: 18px;
+      }
+      .question-title {
+        margin-bottom: 14px;
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.55;
+      }
+      .option-list {
+        display: grid;
+        gap: 9px;
+      }
+      .quiz-option {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        min-height: 38px;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #fff;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .quiz-option input {
+        margin-top: 4px;
+      }
+      .quiz-option.correct {
+        border-color: #86efac;
+        background: var(--success-soft);
+      }
+      .quiz-option.wrong {
+        border-color: #fca5a5;
+        background: var(--danger-soft);
+      }
+      .answer-feedback {
+        margin-top: 13px;
+        padding-top: 12px;
+        border-top: 1px dashed var(--line);
+        font-size: 13px;
+        line-height: 1.65;
+      }
+      .answer-feedback strong.correct {
+        color: var(--success);
+      }
+      .answer-feedback strong.wrong {
+        color: var(--danger);
+      }
+      .quiz-actions {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+        padding: 18px;
+        text-align: left;
+      }
+      .score-text {
+        margin-bottom: 2px;
+        color: var(--primary-dark);
+        font-weight: 800;
+      }
+      .enter-tool-btn {
+        background: var(--primary);
+      }
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(280px, 330px) minmax(420px, 1fr) minmax(300px, 360px);
+        align-items: start;
+        gap: 18px;
+        padding: 0 clamp(16px, 3vw, 36px) 22px;
+      }
+      .parameters,
+      .results {
+        position: sticky;
+        top: 14px;
+      }
+      .field-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .field {
+        display: grid;
+        gap: 6px;
+        min-width: 0;
+      }
+      .field span {
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .field input, .field select { height: 40px; }
+      .field { align-content: end; grid-template-columns: minmax(0,1fr); }
+      .optional-settings { grid-column: 1 / -1; display: grid; gap: 8px; }
+      .optional-settings > label { display: flex; align-items: center; gap: 8px; min-height: 32px; font-size: 14px; }
+      .optional-settings input[type=checkbox] { width: 17px; height: 17px; accent-color: var(--primary); }
+      .optional-settings [hidden] { display: none; }
+      .field small {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .field select,
+      .field input,
+      .data-table input {
+        width: 100%;
+        min-width: 0;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 9px 10px;
+        color: var(--text);
+        background: #fff;
+        outline: none;
+      }
+      .field select:focus,
+      .field input:focus,
+      .data-table input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+      }
+      .data-panel {
+        min-width: 0;
+        padding: 18px;
+      }
+      .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+      .data-table {
+        width: 100%;
+        min-width: 620px;
+        border-collapse: collapse;
+        background: #fff;
+      }
+      .data-table th,
+      .data-table td {
+        border-bottom: 1px solid var(--line);
+        padding: 9px 10px;
+        text-align: left;
+        vertical-align: middle;
+        font-size: 13px;
+      }
+      .data-table thead th {
+        color: var(--primary-dark);
+        background: #f1f6ff;
+        font-weight: 700;
+      }
+      .data-table tbody tr:last-child td {
+        border-bottom: 0;
+      }
+      .data-table input {
+        min-width: 96px;
+        border-color: transparent;
+        padding: 7px 8px;
+        background: var(--surface-soft);
+      }
+      .force-cell {
+        color: var(--primary-dark);
+        font-variant-numeric: tabular-nums;
+      }
+      .row-delete {
+        width: 34px;
+        min-width: 34px;
+        height: 32px;
+        padding: 0;
+        color: var(--danger);
+        background: #fff5f5;
+        border: 1px solid #fecaca;
+      }
+      .calculation-hero {
+        margin-top: 16px;
+        padding: 22px;
+        border: 1px solid #b7d3ff;
+        border-radius: 8px;
+        background: linear-gradient(180deg, #f3f8ff, #ffffff);
+      }
+      .calculation-hero span {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .calculation-hero strong {
+        display: block;
+        color: var(--primary-dark);
+        max-width: 100%;
+        overflow: hidden;
+        font-size: clamp(22px, 2.1vw, 32px);
+        line-height: 1.22;
+        letter-spacing: 0;
+        font-variant-numeric: tabular-nums;
+      }
+      .calculation-hero p {
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .calculation-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+        gap: 1px;
+        overflow: hidden;
+        margin-top: 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--line);
+      }
+      .calculation-grid div {
+        min-width: 0;
+        padding: 16px;
+        border: 0;
+        background: #fff;
+      }
+      .calculation-grid span {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .calculation-grid strong {
+        display: block;
+        color: var(--primary-dark);
+        font-size: 18px;
+        line-height: 1.25;
+        font-variant-numeric: tabular-nums;
+      }
+      .calculation-steps {
+        margin-top: 16px;
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface-soft);
+      }
+      .calculation-steps ol {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+        padding-left: 22px;
+      }
+      .calculation-steps li {
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.55;
+        font-variant-numeric: tabular-nums;
+      }
+      .result-hero {
+        padding: 22px 18px;
+        color: #fff;
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        border-radius: 8px 8px 0 0;
+      }
+      .result-hero span {
+        display: block;
+        margin-bottom: 9px;
+        color: rgba(255, 255, 255, 0.78);
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .result-hero strong {
+        display: block;
+        max-width: 100%;
+        overflow: hidden;
+        font-size: clamp(18px, 1.6vw, 22px);
+        line-height: 1.3;
+        letter-spacing: 0;
+      }
+      .calculation-hero strong mjx-container,
+      .result-hero strong mjx-container {
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+      }
+      .result-hero p {
+        margin: 10px 0 0;
+        color: rgba(255, 255, 255, 0.82);
+        line-height: 1.45;
+      }
+      .result-list dl {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+      }
+      .result-list dl div {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 30px;
+        border-bottom: 1px dashed var(--line);
+      }
+      .result-list dl div:last-child {
+        border-bottom: 0;
+      }
+      .result-list dt {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .result-list dd {
+        margin: 0;
+        color: var(--primary-dark);
+        font-size: 14px;
+        font-weight: 800;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .formula-box p {
+        margin-bottom: 8px;
+        line-height: 1.6;
+      }
+      .formula-box #formulaText {
+        color: var(--primary-dark);
+        font-weight: 800;
+      }
+      .report {
+        margin: 0 clamp(16px, 3vw, 36px) 34px;
+        padding: 20px;
+      }
+      .report-content {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+      .report-block {
+        min-width: 0;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 15px;
+        background: var(--surface-soft);
+      }
+      .report-block.wide {
+        grid-column: span 2;
+      }
+      .report-block h3 {
+        margin-bottom: 10px;
+        color: var(--primary-dark);
+      }
+      .report-block p,
+      .report-block li {
+        color: var(--text);
+        font-size: 13px;
+        line-height: 1.65;
+      }
+      .report-block ul {
+        padding-left: 18px;
+        margin: 0;
+      }
+      .mini-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .mini-table th,
+      .mini-table td {
+        border-bottom: 1px solid var(--line);
+        padding: 7px 6px;
+        text-align: left;
+        vertical-align: top;
+      }
+      .mini-table th {
+        color: var(--primary-dark);
+      }
+      @media (max-width: 1180px) {
+        .workspace {
+          grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+        }
+        .results {
+          position: static;
+          grid-column: 1 / -1;
+        }
+        .report-content {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 820px) {
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .topbar-actions {
+          justify-content: flex-start;
+        }
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+        .parameters {
+          position: static;
+        }
+        .calculation-grid,
+        .report-content {
+          grid-template-columns: 1fr;
+        }
+        .calculation-grid div {
+          border: 0;
+        }
+        .report-block.wide {
+          grid-column: auto;
+        }
+        .section-heading {
+          flex-direction: column;
+        }
+        .inline-actions {
+          justify-content: flex-start;
+        }
+      }
+      @media (max-width: 520px) {
+        .field-grid {
+          grid-template-columns: 1fr;
+        }
+        button {
+          width: 100%;
+        }
+        .topbar-actions,
+        .inline-actions {
+          width: 100%;
+        }
+      }
+    @media (max-width: 820px) { .workspace { grid-template-columns: minmax(0,1fr); } .data-panel { grid-row: 1; min-width: 0; } }
+    .reflection { margin-top: 16px; }
+      #reflection { display:block; width:100%; margin-top:10px; padding:10px; border:1px solid var(--line); border-radius:6px; font:inherit; resize:vertical; }
+    </style>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [["\\(", "\\)"]],
+          displayMath: [["\\[", "\\]"]],
+        },
+        startup: {
+          typeset: true,
+        },
+      };
+    </script>
+    <script id="MathJax-script" async src="mathjax.js"></script>
+  </head>
+  <body data-new-gr-c-s-check-loaded="14.1311.0" data-gr-ext-installed="">
+    <section id="quizGate" class="quiz-page">
+      <header class="topbar">
+        <h1>表面张力实验基础自测</h1>
+      </header>
+      <div class="quiz-intro"><p>4道单选题与1道开放性简答题</p><p>掌握基础知识后，才适合使用本工具简化机械计算。每道单选题只有一个正确答案，提交后可查看简短解析。</p></div>
+      <div id="questionList" class="question-list"></div>
+      <article class="question-card panel reflection">
+        <label class="question-title" for="reflection">5. 本次实验的误差可能来自哪些方面？（开放题，不评分）</label>
+        <textarea id="reflection" rows="3" placeholder="写下你的想法（选填）"></textarea>
+        <div id="reflectionFeedback" class="answer-feedback hidden"><strong>参考思路</strong><ul><li>传感器零点漂移会影响电压读数。</li><li>提拉时金属框晃动，可能影响最大拉力的读取。</li><li>液膜高度读数偏大，会使液膜重力的修正量偏大，算得的表面张力系数偏低。</li><li>水面污染会改变表面张力；水温波动也会影响各次测量结果。</li></ul></div>
+      </article>
+      <section class="quiz-actions panel">
+        <div id="scoreText" class="score-text hidden"></div>
+        <button id="submitQuizBtn" type="button" disabled="">提交答卷</button>
+        <button id="enterToolBtn" class="enter-tool-btn hidden" type="button">进入实验数据处理工具</button>
+      </section>
+    </section>
+    <div id="mainTool" class="hidden">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Physics Competition Lab Tool</p>
+          <h1>液体表面张力系数测量实验数据处理</h1>
+        </div>
+        <div class="topbar-actions">
+          <button id="loadSampleBtn" class="secondary">示例数据</button>
+          <button id="resetBtn" class="ghost">重置</button>
+        </div>
+      </header>
+      <main class="workspace">
+        <aside class="panel parameters">
+          <section class="section">
+            <div class="section-heading">
+              <h2>全局常数</h2>
+            </div>
+            <div class="field-grid">
+              <label class="field">
+                <span>\(\rho\) <small>kg/m³</small></span>
+                <input id="rho" type="number" inputmode="decimal" step="0.1" value="1000">
+              </label>
+              <label class="field">
+                <span>\(g\) <small>m/s²</small></span>
+                <input id="gravity" type="number" inputmode="decimal" step="0.01" value="9.80">
+              </label>
+              <label class="field">
+                <span>\(K\) <small>mV/N</small></span>
+                <input id="instrumentK" type="number" inputmode="decimal" step="0.01" value="314.29">
+              </label>
+              <label class="field">
+                <span>\(k_p\)</span>
+                <input id="coverageFactorInput" type="text" readonly aria-label="自动计算的95%包含因子" placeholder="自动计算">
+              </label>
+              <label class="field">
+                <span>\(L\) <small>m</small></span>
+                <input id="frameWidth" type="number" inputmode="decimal" step="0.001" value="0.036">
+              </label>
+              <label class="field">
+                <span>\(d\) <small>m</small></span>
+                <input id="filmThickness" type="number" inputmode="decimal" step="0.00001" value="0.00014">
+              </label>
+            </div>
+          </section>
+          <section class="section">
+            <div class="section-heading">
+              <h2>输入量的不确定度</h2>
+            </div>
+            <div class="field-grid">
+              <label class="field">
+                <span>电压最大允差 \(\Delta U\) <small>mV</small></span>
+                <input id="deltaU" type="number" inputmode="decimal" step="0.001" value="0.01">
+              </label>
+              <label class="field">
+                <span>高度最大允差 \(\Delta h\) <small>m</small></span>
+                <input id="deltaH" type="number" inputmode="decimal" step="0.000001" value="0.00001">
+              </label>
+            <label class="field"><span>L 的最大允差 / m</span><input id="limitL" type="number" step="any" min="0" inputmode="decimal" value="0.00001"></label><label class="field"><span>d 的最大允差 / m</span><input id="limitD" type="number" step="any" min="0" inputmode="decimal" value="0.00001"></label><div class="optional-settings"><label><input type="checkbox" id="useK" aria-controls="fieldsK">计入 K 的标准不确定度</label><div class="field-grid" id="fieldsK" hidden><label class="field"><span>K 的标准不确定度 / (mV/N)</span><input id="stdK" type="number" step="any" min="0" inputmode="decimal" value=""></label></div><label><input type="checkbox" id="useRho" aria-controls="fieldsRho">计入 ρ 的标准不确定度</label><div class="field-grid" id="fieldsRho" hidden><label class="field"><span>ρ 的标准不确定度 / (kg/m³)</span><input id="stdRho" type="number" step="any" min="0" inputmode="decimal" value=""></label></div><label><input type="checkbox" id="useG" aria-controls="fieldsG">计入 g 的标准不确定度</label><div class="field-grid" id="fieldsG" hidden><label class="field"><span>g 的标准不确定度 / (m/s²)</span><input id="stdG" type="number" step="any" min="0" inputmode="decimal" value=""></label></div></div></div>
+          </section>
+          <section class="section formula-box">
+            <div class="section-heading">
+              <h2>理论表达式</h2>
+            </div>
+            <p id="formulaText">\( \gamma = \frac{U}{2 K L} - \frac{\rho g d h}{2} \)</p>
+            <p class="muted">同次提拉的电压和高度配对评定重复性。仅计入与该重复性不重复、彼此独立的仪器分量。课程给出最大允差 ±a 时，填写正值 a（例如 ±0.01 填 0.01）。按矩形分布计算，该项标准不确定度为 a/√3。这里以同组共用的读数修正分量计入一次。L、d 的默认最大允差绝对值均为 0.01 mm。勾选并填写后按“确认”，即可计入相应分量。本工具将计入的仪器分量视为评定足够可靠，自由度按无穷大近似处理。</p>
+          </section>
+        </aside>
+        <section class="panel data-panel">
+          <div class="section-heading">
+            <div>
+              <h2>多次测量数据</h2>
+              <p>输入每次测量的 \(U\) 和 \(h\)。表格中的 \(h\) 以 \(10^{-3}\,\mathrm m\) 为单位，输入 3.96 即按 0.00396 m 计算。</p>
+            </div>
+            <div class="inline-actions">
+              <button id="addRowBtn" class="secondary">添加一行</button>
+              <button id="clearRowsBtn" class="ghost">清空</button>
+              <button id="confirmBtn" type="button">确认</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table measurement-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>\(U / \mathrm{mV}\)</th>
+                  <th>\(h / (10^{-3}\,\mathrm{m})\)</th>
+                  <th>\(\gamma_i / \mathrm{N}\cdot\mathrm{m}^{-1}\)</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="measurementBody"></tbody>
+            </table>
+          </div>
+          <section class="calculation-hero">
+            <span>最终测量结果</span>
+            <strong id="centerGamma">\(0.071417 \pm 0.001004\ \text{N/m}\)</strong>
+            <p id="centerInterval">约95%包含区间：[0.070413 N/m, 0.072421 N/m]</p>
+          </section>
+          <div class="calculation-grid">
+            <div>
+              <span>\(U\) 平均值</span>
+              <strong id="uAverage">1.67182 mV</strong>
+            </div>
+            <div>
+              <span>\(h\) 平均值</span>
+              <strong id="hAverage">0.003590 m</strong>
+            </div>
+            <div>
+              <span>\(u_\gamma\) 标准不确定度</span>
+              <strong id="standardGammaUncertainty">0.000502 N/m</strong>
+            </div>
+            <div>
+              <span>\(U_\gamma\) 扩展不确定度</span>
+              <strong id="expandedGammaUncertainty">0.001004 N/m</strong>
+            </div>
+            <div>
+              <span>重复次数 \(n\)</span>
+              <strong id="repeatCount">11</strong>
+            </div>
+          </div>
+          <section class="calculation-steps">
+            <div class="section-heading">
+              <div>
+                <h2>计算展开</h2>
+                <p id="centerFormula">\( \gamma = \frac{U}{2 K L} - \frac{\rho g d h}{2} \)</p>
+              </div>
+            </div>
+            <ol id="calculationSteps"><li>\(U\) 平均值 = 1.67182 mV，\(h\) 平均值 = 0.003590 m</li><li>\(u(U) = \sqrt{u_A^2(U)+u_B^2(U)}\) = 0.01129 mV</li><li>\(u(h) = \sqrt{u_A^2(h)+u_B^2(h)}\) = 7.9101e-5 m</li><li>\(\partial\gamma/\partial U\) = 0.04419132，\(\partial\gamma/\partial h\) = -0.686000</li><li>\(u_\gamma = \sqrt{\left(\frac{\partial\gamma}{\partial U}\cdot u_U\right)^2 + \left(\frac{\partial\gamma}{\partial h}\cdot u_h\right)^2}\) = 0.000502 N/m</li><li>\(U_\gamma = k_p u_\gamma\) = 0.001004 N/m</li></ol>
+          </section>
+        </section>
+        <aside class="panel results">
+          <section class="result-hero">
+            <span>结果</span>
+            <strong id="finalGamma">\(0.071417 \pm 0.001004\ \text{N/m}\)</strong>
+            <p id="finalInterval">约95%包含区间：[0.070413 N/m, 0.072421 N/m]</p>
+          </section>
+          <section class="section result-list">
+            <div class="section-heading">
+              <h2>各测量量不确定度</h2>
+            </div>
+            <dl>
+              <div><dt>\(u_A(U)\)</dt><dd id="uA">0.00971 mV</dd></div>
+              <div><dt>\(u_B(U)\)</dt><dd id="uB">0.00577 mV</dd></div>
+              <div><dt>\(u(U)\)</dt><dd id="uU">0.01129 mV</dd></div>
+              <div><dt>\(u_A(h)\)</dt><dd id="uAh">7.8890e-5 m</dd></div>
+              <div><dt>\(u_B(h)\)</dt><dd id="uBh">5.7735e-6 m</dd></div>
+              <div><dt>\(u(h)\)</dt><dd id="uH">7.9101e-5 m</dd></div>
+            </dl>
+          </section>
+          <section class="section result-list">
+            <div class="section-heading">
+              <h2>偏导与传播</h2>
+            </div>
+            <dl>
+              <div><dt>\(\partial\gamma/\partial U\)</dt><dd id="partialU">0.04419132</dd></div>
+              <div><dt>\(\partial\gamma/\partial h\)</dt><dd id="partialH">-0.686000</dd></div>
+              <div><dt>\(k_p\)</dt><dd id="kpValue">2.000</dd></div>
+            </dl>
+          </section>
+        </aside>
+      </main>
+      <section class="report panel">
+        <div class="section-heading">
+          <div>
+            <h2>网页实验报告</h2>
+            <p>报告随表格数据实时更新，计算方法对应当前不确定度模板。</p>
+          </div>
+        </div>
+        <div id="reportContent" class="report-content">
+          <article class="report-block">
+            <h3>实验常数</h3>
+            <table class="mini-table">
+              <tbody>
+                <tr><td>\(\rho\)</td><td>1.0000e+3 kg/m³</td></tr>
+                <tr><td>\(g\)</td><td>9.80 m/s²</td></tr>
+                <tr><td>\(K\)</td><td>314.29 mV/N</td></tr>
+                <tr><td>\(L\)</td><td>0.036000 m</td></tr>
+                <tr><td>\(d\)</td><td>0.000140 m</td></tr>
+                <tr><td>\(k_p\)</td><td>2.000</td></tr>
+              </tbody>
+            </table>
+          </article>
+          <article class="report-block">
+            <h3>平均读数</h3>
+            <ul>
+              <li>\(\bar{U}\) = 1.67182 mV</li>
+              <li>\(\bar{h}\) = 0.003590 m</li>
+              <li>\(n\) = 11</li>
+            </ul>
+          </article>
+          <article class="report-block">
+            <h3>合成标准不确定度</h3>
+            <ul>
+              <li>\(u(U)\) = 0.01129 mV</li>
+              <li>\(u(h)\) = 7.9101e-5 m</li>
+              <li>\(u_\gamma\) = 0.000502 N/m</li>
+            </ul>
+          </article>
+          <article class="report-block">
+            <h3>最终结果</h3>
+            <ul>
+              <li>\(\bar{\gamma}\) = 0.071417 N/m</li>
+              <li>\(U_\gamma(P=0.95)\) = 0.001004 N/m</li>
+              <li>\(\gamma = (0.0714 \pm 0.0010)\ \text{N/m}\)</li>
+            </ul>
+          </article>
+          <article class="report-block wide">
+            <h3>公式与偏导</h3>
+            <ul>
+              <li>\(\gamma = \frac{U}{2 K L} - \frac{\rho g d h}{2}\)</li>
+              <li>\(\frac{\partial\gamma}{\partial U}\) = 0.04419132</li>
+              <li>\(\frac{\partial\gamma}{\partial h}\) = -0.686000</li>
+            </ul>
+          </article>
+          <article class="report-block wide">
+            <h3>实验结论</h3>
+            <p>
+              按 A 类、B 类不确定度合成并进行偏导传播，最终表面张力系数为
+              <strong>\(\bar{\gamma} = 0.071417 \pm 0.001004\ \text{N/m}\)</strong>，
+              在合成量可近似采用 t 分布的条件下，包含概率约为 95%。有效自由度 ${Number.isFinite(params.effectiveDf) ? formatNumber(params.effectiveDf,2) : "∞"}，包含因子 ${params.coverageFactor}。${params.omitted.length ? "未计入 " + params.omitted.join("、") + " 的不确定度。" : ""}
+            </p>
+          </article>
+        </div>
+      </section>
+    </div>
+    <script>
+      // 题目配置区
+      const QUIZ_QUESTIONS = [
+  {
+    "stem": "用金属框提拉液膜，取拉力最大值计算表面张力系数时，应选用哪个公式？",
+    "options": [
+      "\\(\\gamma=\\frac{U}{KL}-\\rho gdh\\)",
+      "\\(\\gamma=\\frac{U}{2KL}-\\frac{\\rho gdh}{2}\\)",
+      "\\(\\gamma=\\frac{U}{2KL}+\\frac{\\rho gdh}{2}\\)",
+      "\\(\\gamma=\\frac{U}{2KL}\\)"
+    ],
+    "answer": "B",
+    "explanation": "本实验在取值点按表面张力方向竖直处理。由相应电压求得拉力\\(U/K\\)，扣除液膜重力，再除以两侧接触线的总长度\\(2L\\)即可推出此公式。"
+  },
+  {
+    "stem": "用同一套装置重复测量水的表面张力系数时，哪些量在计算中取固定值，哪些量需要每次提拉时直接测量？",
+    "options": [
+      "固定值为\\(K\\)、\\(h\\)；直接测量\\(U\\)、\\(L\\)。",
+      "固定值为\\(U\\)、\\(h\\)；直接测量\\(K\\)、\\(L\\)。",
+      "固定值为\\(K\\)、\\(L\\)；直接测量\\(U\\)、\\(h\\)。",
+      "固定值为\\(U\\)、\\(L\\)；直接测量\\(K\\)、\\(h\\)。"
+    ],
+    "answer": "C",
+    "explanation": "本工具沿用传感器灵敏度K的标定值和分界线长度L的测量值，每次提拉时记录输出电压U和液膜高度h。"
+  },
+  {
+    "stem": "游标卡尺最大允差 ±0.02 mm，误差服从均匀（矩形）分布，其 B 类标准不确定度为？",
+    "options": [
+      "\\(\\frac{0.02}{\\sqrt{3}}\\,\\mathrm{mm}\\)",
+      "\\(\\frac{0.02}{3}\\,\\mathrm{mm}\\)",
+      "\\(\\frac{0.02}{\\sqrt{6}}\\,\\mathrm{mm}\\)",
+      "\\(0.02\\,\\mathrm{mm}\\)"
+    ],
+    "answer": "A",
+    "explanation": "均匀分布的区间半宽为 a＝0.02 mm，标准不确定度为 \\(u=a/\\sqrt{3}\\)。对称三角分布的区间半宽为 a 时，\\(u=a/\\sqrt{6}\\)；正态分布取 \\(a=3\\sigma\\) 时，\\(u=a/3\\)。"
+  },
+  {
+    "stem": "合成标准不确定度 \\(u_c\\) 与扩展不确定度 \\(U_p\\) 的关系，正确的是？",
+    "options": [
+      "\\(u_c=k_p U_p\\)",
+      "\\(U_p=k_p u_c\\)",
+      "\\(U_p=u_c\\)",
+      "\\(U_p=u_c^2\\)"
+    ],
+    "answer": "B",
+    "explanation": "扩展不确定度由合成标准不确定度乘以对应置信水平的包含因子得到。以测量结果为中心，向两侧各取一个扩展不确定度，即得到相应的包含区间。"
+  }
+];
+      const OPTION_LETTERS = ["A", "B", "C", "D"];
+      // 答题逻辑区
+      const quizState = {
+        answers: {},
+        submitted: false,
+      };
+      function renderQuiz() {
+        const questionList = document.getElementById("questionList");
+        questionList.innerHTML = QUIZ_QUESTIONS.map((question, index) => {
+          const selected = quizState.answers[index];
+          const isSubmitted = quizState.submitted;
+          const isCorrect = selected === question.answer;
+          const optionHtml = question.options
+            .map((option, optionIndex) => {
+              const letter = OPTION_LETTERS[optionIndex];
+              const checked = selected === letter ? "checked" : "";
+              const disabled = isSubmitted ? "disabled" : "";
+              const correctClass = isSubmitted && letter === question.answer ? "correct" : "";
+              const wrongClass =
+                isSubmitted && selected === letter && selected !== question.answer ? "wrong" : "";
+              return `
+                <label class="quiz-option ${correctClass} ${wrongClass}">
+                  <input type="radio" name="question-${index}" value="${letter}" ${checked} ${disabled} />
+                  <span>${letter}. ${option}</span>
+                </label>
+              `;
+            })
+            .join("");
+          const feedbackHtml = isSubmitted
+            ? `
+              <div class="answer-feedback">
+                <strong class="${isCorrect ? "correct" : "wrong"}">${isCorrect ? "✓ 回答正确" : "✗ 回答错误"}</strong>
+                <div>正确答案：${question.answer}</div>
+                <div>解析：${question.explanation}</div>
+              </div>
+            `
+            : "";
+          return `
+            <article class="question-card panel">
+              <div class="question-title">${index + 1}. ${question.stem}</div>
+              <div class="option-list">${optionHtml}</div>
+              ${feedbackHtml}
+            </article>
+          `;
+        }).join("");
+        questionList.querySelectorAll("input[type='radio']").forEach((input) => {
+          input.addEventListener("change", (event) => {
+            const questionIndex = Number(event.target.name.replace("question-", ""));
+            quizState.answers[questionIndex] = event.target.value;
+            updateQuizActions();
+          });
+        });
+        typesetMath();
+      }
+      function answeredCount() {
+        return QUIZ_QUESTIONS.filter((_, index) => quizState.answers[index]).length;
+      }
+      function scoreQuiz() {
+        return QUIZ_QUESTIONS.reduce(
+          (score, question, index) => score + (quizState.answers[index] === question.answer ? 1 : 0),
+          0,
+        );
+      }
+      function updateQuizActions() {
+        $("reflectionFeedback").classList.toggle("hidden", !quizState.submitted);
+        $("reflection").readOnly = quizState.submitted;
+        const submitBtn = document.getElementById("submitQuizBtn");
+        const enterBtn = document.getElementById("enterToolBtn");
+        const scoreText = document.getElementById("scoreText");
+        if (quizState.submitted) {
+          const score = scoreQuiz();
+          const percent = Math.round((score / QUIZ_QUESTIONS.length) * 100);
+          submitBtn.disabled = false;
+          submitBtn.textContent = "重新答题";
+          enterBtn.classList.remove("hidden");
+          scoreText.classList.remove("hidden");
+          scoreText.textContent = `本次答对 ${score}/${QUIZ_QUESTIONS.length} 题，正确率 ${percent}%。`;
+          return;
+        }
+        submitBtn.disabled = answeredCount() < QUIZ_QUESTIONS.length;
+        submitBtn.textContent = "提交答卷";
+        enterBtn.classList.add("hidden");
+        scoreText.classList.add("hidden");
+        scoreText.textContent = "";
+      }
+      function submitQuiz() {
+        if (quizState.submitted) {
+          resetQuiz();
+          return;
+        }
+        const missing = QUIZ_QUESTIONS.length - answeredCount();
+        if (missing > 0) {
+          alert(`您还有${missing}题未作答，请完成全部题目后再提交。`);
+          return;
+        }
+        quizState.submitted = true;
+        renderQuiz();
+        updateQuizActions();
+      }
+      function resetQuiz() {
+        $("reflection").value = "";
+        quizState.answers = {};
+        quizState.submitted = false;
+        renderQuiz();
+        updateQuizActions();
+      }
+      // 计算辅助：中间量不修约，最终十进制half-even修约。
+  const T95 = {1:12.706,2:4.303,3:3.182,4:2.776,5:2.571,6:2.447,7:2.365,8:2.306,
+    9:2.262,10:2.228,11:2.201,12:2.179,13:2.160,14:2.145,15:2.131,16:2.120,
+    17:2.110,18:2.101,19:2.093,20:2.086,21:2.080,22:2.074,23:2.069,24:2.064,
+    25:2.060,26:2.056,27:2.052,28:2.048,29:2.045,30:2.042,40:2.021,60:2.000,120:1.980};
+  function effectiveDof(components) {
+    // 先以最大贡献归一化，避免四次方在极小数时下溢。
+    const scale=Math.max(0,...components.map(c=>Math.abs(c.u)));if(scale===0)return Infinity;
+    const sum=components.reduce((s,c)=>s+(c.u/scale)**2,0);
+    const den=components.reduce((s,c)=>s+(Number.isFinite(c.df)?(c.u/scale)**4/c.df:0),0);
+    return den===0?Infinity:sum**2/den;
+  }
+  function coverage95(df) {
+    if(df===Infinity) return 1.960;
+    // 仅消除浮点舍入噪声，例如数学上6被算成5.999999999999999；不修约真实小数自由度。
+    const nearest=Math.round(df);
+    if(Math.abs(df-nearest)<=16*Number.EPSILON*Math.max(1,Math.abs(df)))df=nearest;
+    if(!Number.isFinite(df)||df<1) throw Error('有效自由度必须 ≥1。');
+    const n = Math.floor(df);
+    if (T95[n] !== undefined) return T95[n];
+    // t 分位数的大自由度展开（n > 30），与表值统一取三位小数。
+    const z = 1.959963984540054;
+    const t = z + (z**3+z)/(4*n) + (5*z**5+16*z**3+3*z)/(96*n**2)
+      + (3*z**7+19*z**5+17*z**3-15*z)/(384*n**3)
+      + (79*z**9+776*z**7+1482*z**5-1920*z**3-945*z)/(92160*n**4);
+    return Number(t.toFixed(3));
+  }
+
+  function decimalParts(value) {
+    let s=String(value).toLowerCase(),negative=s.startsWith('-');s=s.replace(/^[+-]/,'');
+    const [mant,ex='0']=s.split('e'),[whole,frac='']=mant.split('.');
+    if(!/^\d+$/.test(whole+frac)) throw Error('非有限十进制数');
+    return {negative,digits:BigInt(whole+frac),power:Number(ex)-frac.length};
+  }
+  function quantizedInteger(value,place) {
+    const {negative,digits,power}=decimalParts(value),shift=power-place;
+    let q;
+    if(shift>=0) q=digits*10n**BigInt(shift);
+    else {const den=10n**BigInt(-shift),base=digits/den,rem=digits%den;
+      q=base+(rem*2n>den || (rem*2n===den && base%2n===1n)?1n:0n);}
+    return negative&&q!==0n?-q:q;
+  }
+  function formatAt(value,place) {
+    const q=quantizedInteger(value,place),negative=q<0n;
+    let s=(negative?-q:q).toString();
+    if(place>=0) s+='0'.repeat(place);
+    else {s=s.padStart(1-place,'0');const cut=s.length+place;s=s.slice(0,cut)+'.'+s.slice(cut);}
+    return (negative?'-':'')+s;
+  }
+  function roundPair(value,u,digits=2) {
+    if(!Number.isFinite(value)||!Number.isFinite(u)||u<=0) return null;
+    const {digits: coefficient, power} = decimalParts(u);
+    let place=coefficient.toString().length - 1 + power - digits + 1;
+    if (quantizedInteger(u,place) >= 10n**BigInt(digits)) place++;
+    return {value:formatAt(value,place),uncertainty:formatAt(u,place),place};
+  }
+
+  function reportPair(result) {
+    return roundPair(result.gammaAverage,result.expandedGammaUncertainty) || {value:"--",uncertainty:"--"};
+  }
+  function formatUncertainty(value, unit = "N/m") {
+    if (value === 0) return `0 ${unit}`;
+    const pair=roundPair(0,value);
+    return pair ? `${pair.uncertainty} ${unit}` : "--";
+  }
+
+      // 主工具计算区
+      const sampleParams = {
+        rho: "1000",
+        gravity: "9.80",
+        instrumentK: "314.29",
+        frameWidth: "0.036",
+        filmThickness: "0.00014",
+        limitL: "0.00001", limitD: "0.00001",
+        stdK: "", stdRho: "", stdG: "",
+        deltaU: "0.01",
+        deltaH: "0.00001",
+      };
+      const sampleRows = [
+        { u: "1.65", h: "3.81" },
+        { u: "1.64", h: "3.82" },
+        { u: "1.63", h: "3.37" },
+        { u: "1.68", h: "3.48" },
+        { u: "1.71", h: "4.16" },
+        { u: "1.71", h: "3.39" },
+        { u: "1.66", h: "3.51" },
+        { u: "1.67", h: "3.48" },
+        { u: "1.66", h: "3.76" },
+        { u: "1.73", h: "3.35" },
+        { u: "1.65", h: "3.36" },
+      ];
+      const blankRows = Array.from({ length: 6 }, () => ({ u: "", h: "" }));
+      const gammaFormulaLatex = "\\gamma = \\frac{U}{2 K L} - \\frac{\\rho g d h}{2}";
+      const paramIds = Object.keys(sampleParams);
+      let rows = structuredClone(sampleRows);
+      const $ = (id) => document.getElementById(id);
+      const square = (value) => value * value;
+      const safeSqrt = (value) => Math.sqrt(Math.max(0, value));
+      const mean = values => values[0] + values.reduce((sum, value) => sum + (value - values[0]), 0) / values.length;
+      function numberFromInput(id, fallback = NaN) {
+        const value = parseMaybeNumber($(id).value);
+        return Number.isFinite(value) ? value : fallback;
+      }
+      function parseMaybeNumber(value) {
+        const text = String(value).trim();
+        if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text)) return NaN;
+        const number = Number(text);
+        return Number.isFinite(number) ? number : NaN;
+      }
+      function formatNumber(value, digits = 6) {
+        if (!Number.isFinite(value)) return "--";
+        if (Math.abs(value) >= 1000 || (Math.abs(value) > 0 && Math.abs(value) < 0.0001)) {
+          return value.toExponential(4);
+        }
+        return value.toFixed(digits);
+      }
+      function formatVoltage(value) {
+        return Number.isFinite(value) ? `${formatNumber(value, 5)} mV` : "--";
+      }
+      function formatLength(value) {
+        return Number.isFinite(value) ? `${formatNumber(value, 6)} m` : "--";
+      }
+      function formatGamma(value) {
+        return Number.isFinite(value) ? `${formatNumber(value, 6)} N/m` : "--";
+      }
+      function formatGammaCompact(value) {
+        return Number.isFinite(value) ? `${formatNumber(value, 4)} N/m` : "--";
+      }
+      function formatInterval(meanValue, expanded) {
+        const pair = roundPair(meanValue, expanded);
+        if (!pair) return "等待有效数据";
+        return `[${formatAt(meanValue-expanded, pair.place)} N/m, ${formatAt(meanValue+expanded, pair.place)} N/m]`;
+      }
+      function optional(id, blankValue) {
+        if ($(id).disabled) return blankValue;
+        return $(id).validity.badInput ? NaN : $(id).value === "" ? blankValue : numberFromInput(id);
+      }
+      function getParams() {
+        return {
+          rho: numberFromInput("rho"),
+          gravity: numberFromInput("gravity"),
+          instrumentK: numberFromInput("instrumentK"),
+          frameWidth: numberFromInput("frameWidth"),
+          filmThickness: numberFromInput("filmThickness"),
+          coverageFactor: NaN,
+          limitL: numberFromInput("limitL"), limitD: numberFromInput("limitD"),
+          stdK: optional("stdK", 0), stdRho: optional("stdRho", 0), stdG: optional("stdG", 0),
+          omitted: [["stdK","K"],["stdRho","ρ"],["stdG","g"]].filter(([id])=>$(id).disabled || $(id).value==="").map(([,name])=>name),
+          deltaU: numberFromInput("deltaU"),
+          deltaH: numberFromInput("deltaH"),
+        };
+      }
+      function getValidRows() {
+        return rows
+          .map((row, index) => ({
+            rowIndex: index,
+            u: parseMaybeNumber(row.u),
+            h: parseMaybeNumber(row.h) * 1e-3,
+          }))
+          .filter((row) => Number.isFinite(row.u) && Number.isFinite(row.h));
+      }
+      function gammaValue(params, u, h) {
+        return (
+          u / (2 * params.instrumentK * params.frameWidth) -
+          (params.rho * params.gravity * params.filmThickness * h) / 2
+        );
+      }
+      function uA(values) {
+        if (values.length < 2) return NaN;
+        const avg = mean(values);
+        const sumSq = values.reduce((sum, value) => sum + square(value - avg), 0);
+        return Math.sqrt(sumSq / (values.length * (values.length - 1)));
+      }
+      function uB(halfWidth) {
+        return halfWidth >= 0 ? halfWidth / Math.sqrt(3) : NaN;
+      }
+      function calculate() {
+        const params = getParams();
+        const validRows = getValidRows();
+        const enteredRows = rows.filter(row => String(row.u).trim() || String(row.h).trim());
+        const values = [params.rho, params.gravity, params.instrumentK, params.frameWidth,
+          params.filmThickness, params.deltaU, params.deltaH];
+        if (validRows.length < 1 || validRows.length !== enteredRows.length ||
+            !values.every(Number.isFinite) || params.instrumentK <= 0 || params.frameWidth <= 0 ||
+            params.rho <= 0 || params.gravity <= 0 || params.filmThickness < 0 ||
+            ![params.stdK, params.stdRho, params.stdG, params.limitL, params.limitD].every(x => Number.isFinite(x) && x >= 0) ||
+            Array.from($("measurementBody").querySelectorAll("input")).some(input => input.validity.badInput) ||
+            params.deltaU < 0 || params.deltaH < 0 || validRows.some(row => row.h < 0)) {
+          return invalidCalculation(params, []);
+        }
+        const uValues = validRows.map((row) => row.u);
+        const hValues = validRows.map((row) => row.h);
+        const uAverage = mean(uValues);
+        const hAverage = mean(hValues);
+        const gammaAverage = gammaValue(params, uAverage, hAverage);
+        const completeUncertainty = validRows.length >= 2;
+        const uAU = completeUncertainty ? uA(uValues) : NaN;
+        const uBU = uB(params.deltaU);
+        const uU = completeUncertainty ? Math.hypot(uAU, uBU) : NaN;
+        const uAh = completeUncertainty ? uA(hValues) : NaN;
+        const uBh = uB(params.deltaH);
+        const uH = completeUncertainty ? Math.hypot(uAh, uBh) : NaN;
+        const partialU = 1 / (2 * params.instrumentK * params.frameWidth);
+        const partialH = -(params.rho * params.gravity * params.filmThickness) / 2;
+        // U、h必须来自同次测量。由逐对γ统计A类，保留样本协方差，不能再重复加入uAU、uAh。
+        const rowGammaValues = validRows.map(row => gammaValue(params, row.u, row.h));
+        const pairedA = completeUncertainty ? uA(rowGammaValues) : NaN;
+        const partialK = -uAverage / (2 * square(params.instrumentK) * params.frameWidth);
+        const partialL = -uAverage / (2 * params.instrumentK * square(params.frameWidth));
+        const partialD = -params.rho * params.gravity * hAverage / 2;
+        const partialRho = -params.gravity * params.filmThickness * hAverage / 2;
+        const partialG = -params.rho * params.filmThickness * hAverage / 2;
+        if (!Number.isFinite(gammaAverage)) {
+          return invalidCalculation(params, []);
+        }
+        let standardGammaUncertainty = NaN;
+        let expandedGammaUncertainty = NaN;
+        if (completeUncertainty) {
+          const components = [
+            {u: pairedA, df: validRows.length - 1},
+            {u: partialU * uBU, df: Infinity}, {u: partialH * uBh, df: Infinity},
+            {u: partialL * uB(params.limitL), df: Infinity}, {u: partialD * uB(params.limitD), df: Infinity},
+            {u: partialK * params.stdK, df: Infinity},
+            {u: partialRho * params.stdRho, df: Infinity}, {u: partialG * params.stdG, df: Infinity},
+          ];
+          standardGammaUncertainty = Math.hypot(...components.map(item => item.u));
+          if (!Number.isFinite(standardGammaUncertainty) ||
+              !components.every(item => Number.isFinite(item.u))) {
+            return invalidCalculation(params, []);
+          }
+          if (standardGammaUncertainty > 0) {
+          params.effectiveDf = effectiveDof(components);
+          params.coverageFactor = coverage95(params.effectiveDf);
+
+          expandedGammaUncertainty = params.coverageFactor * standardGammaUncertainty;
+          }
+        }
+        return {
+          params,
+          validRows,
+          completeUncertainty: Number.isFinite(expandedGammaUncertainty),
+          uAverage,
+          hAverage,
+          gammaAverage,
+          uAU,
+          uBU,
+          uU,
+          uAh,
+          uBh,
+          uH,
+          partialU,
+          partialH,
+          standardGammaUncertainty,
+          expandedGammaUncertainty,
+          rowGammas: new Map(validRows.map((row) => [row.rowIndex, gammaValue(params, row.u, row.h)])),
+          formula: "\\gamma = \\frac{U}{2 K L} - \\frac{\\rho g d h}{2}",
+        };
+      }
+      function invalidCalculation(params, validRows) {
+        return {
+          params,
+          validRows,
+          completeUncertainty: false,
+          uAverage: NaN,
+          hAverage: NaN,
+          gammaAverage: NaN,
+          uAU: NaN,
+          uBU: Number.isFinite(params.deltaU) ? uB(params.deltaU) : NaN,
+          uU: NaN,
+          uAh: NaN,
+          uBh: Number.isFinite(params.deltaH) ? uB(params.deltaH) : NaN,
+          uH: NaN,
+          partialU: NaN,
+          partialH: NaN,
+          standardGammaUncertainty: NaN,
+          expandedGammaUncertainty: NaN,
+          rowGammas: new Map(),
+          formula: "\\gamma = \\frac{U}{2 K L} - \\frac{\\rho g d h}{2}",
+        };
+      }
+      function renderRows(result) {
+        $("measurementBody").innerHTML = rows
+          .map(
+            (row, index) => `
+              <tr data-row="${index}">
+                <td>${index + 1}</td>
+                <td><input type="number" inputmode="decimal" step="0.001" value="${row.u}" data-field="u" data-index="${index}" aria-label="第${index + 1}行 U" /></td>
+                <td><input type="number" inputmode="decimal" step="0.01" value="${row.h}" data-field="h" data-index="${index}" aria-label="第${index + 1}行 h，单位10的负三次方米" /></td>
+                <td class="force-cell">${formatNumber(result.rowGammas.get(index), 6)}</td>
+                <td><button class="row-delete" data-delete="${index}" aria-label="删除第${index + 1}行">×</button></td>
+              </tr>
+            `,
+          )
+          .join("");
+        $("measurementBody").querySelectorAll("input").forEach((input) => {
+          input.addEventListener("input", (event) => {
+            const target = event.target;
+            rows[Number(target.dataset.index)][target.dataset.field] = target.value;
+          });
+        });
+        $("measurementBody").querySelectorAll("[data-delete]").forEach((button) => {
+          button.addEventListener("click", () => {
+            rows.splice(Number(button.dataset.delete), 1);
+            if (!rows.length) rows.push({ u: "", h: "" });
+            calculateAndRender();
+          });
+        });
+      }
+      function uncertaintyNote(result) {
+        if (result.validRows.length === 1)
+          return "已计算单次 γ。本工具以本组重复测量评定重复性，至少需要两组数据。";
+        return "本组读数无离散，已纳入的仪器贡献也为零；请核对输入依据后再报告包含区间。";
+      }
+      function updateText(result) {
+        $("coverageFactorInput").value = result.completeUncertainty ? String(result.params.coverageFactor) : "";
+        const hasGamma = Number.isFinite(result.gammaAverage);
+        const finalText = result.completeUncertainty
+          ? `\\((${reportPair(result).value} \\pm ${reportPair(result).uncertainty})\\ \\text{N/m}\\)`
+          : hasGamma
+            ? `\\(\\gamma = ${formatNumber(result.gammaAverage, 6)}\\ \\text{N/m}\\)`
+            : "--";
+        const omitted = result.params.omitted;
+        const scope = omitted.length ? "；未计入 " + omitted.join("、") + " 的不确定度" : "";
+        const intervalText = result.completeUncertainty
+          ? `约95%包含区间：${formatInterval(result.gammaAverage, result.expandedGammaUncertainty)}${scope}`
+          : hasGamma
+            ? uncertaintyNote(result)
+            : "等待有效数据";
+        $("centerGamma").textContent = finalText;
+        $("centerInterval").textContent = intervalText;
+        $("finalGamma").textContent = finalText;
+        $("finalInterval").textContent = intervalText;
+        $("uAverage").textContent = formatVoltage(result.uAverage);
+        $("hAverage").textContent = formatLength(result.hAverage);
+        $("standardGammaUncertainty").textContent = formatUncertainty(result.standardGammaUncertainty);
+        $("expandedGammaUncertainty").textContent = formatUncertainty(result.expandedGammaUncertainty);
+        $("repeatCount").textContent = result.validRows.length ? String(result.validRows.length) : "--";
+        $("formulaText").textContent = `\\(${result.formula}\\)`;
+        $("centerFormula").textContent = `\\(${result.formula}\\)`;
+        $("uA").textContent = formatUncertainty(result.uAU, "mV");
+        $("uB").textContent = formatUncertainty(result.uBU, "mV");
+        $("uU").textContent = formatUncertainty(result.uU, "mV");
+        $("uAh").textContent = formatUncertainty(result.uAh, "m");
+        $("uBh").textContent = formatUncertainty(result.uBh, "m");
+        $("uH").textContent = formatUncertainty(result.uH, "m");
+        $("partialU").textContent = formatNumber(result.partialU, 8);
+        $("partialH").textContent = formatNumber(result.partialH, 6);
+        $("kpValue").textContent = result.completeUncertainty ? formatNumber(result.params.coverageFactor, 3) : "--";
+      }
+      function renderCalculationSteps(result) {
+        const steps = [
+          `\\(U\\) 平均值 = ${formatVoltage(result.uAverage)}，\\(h\\) 平均值 = ${formatLength(result.hAverage)}`,
+          `\\(u(U) = \\sqrt{u_A^2(U)+u_B^2(U)}\\) = ${formatUncertainty(result.uU, "mV")}`,
+          `\\(u(h) = \\sqrt{u_A^2(h)+u_B^2(h)}\\) = ${formatUncertainty(result.uH, "m")}`,
+          `\\(\\partial\\gamma/\\partial U\\) = ${formatNumber(result.partialU, 8)}，\\(\\partial\\gamma/\\partial h\\) = ${formatNumber(result.partialH, 6)}`,
+          `\\(u_\\gamma = \\sqrt{u_A^2(\\bar{\\gamma})+\\sum_j(c_j u_{B,j})^2}\\) = ${formatUncertainty(result.standardGammaUncertainty)}`,
+          `\\(U_\\gamma = k_p u_\\gamma\\) = ${formatUncertainty(result.expandedGammaUncertainty)}`,
+        ];
+        if (Number.isFinite(result.gammaAverage) && !result.completeUncertainty) {
+          steps.push(uncertaintyNote(result));
+        }
+        $("calculationSteps").innerHTML = steps.map((step) => `<li>${step}</li>`).join("");
+      }
+      function renderReport(result) {
+        const { params } = result;
+        const hasGamma = Number.isFinite(result.gammaAverage);
+        const gammaVal = result.completeUncertainty ? reportPair(result).value : hasGamma ? formatNumber(result.gammaAverage, 6) : "--";
+        const expandedVal = Number.isFinite(result.expandedGammaUncertainty) ? reportPair(result).uncertainty : "--";
+        const finalResultItems = result.completeUncertainty
+          ? `<li>\\(\\bar{\\gamma}\\) = ${gammaVal} N/m</li>
+              <li>\\(U_\\gamma(P=0.95)\\) = ${formatUncertainty(result.expandedGammaUncertainty)}</li>
+              <li>\\(\\gamma = (${gammaVal} \\pm ${expandedVal})\\ \\text{N/m}\\)</li>`
+          : hasGamma
+            ? `<li>\\(\\gamma\\) = ${gammaVal} N/m</li><li>${uncertaintyNote(result)}</li>`
+            : `<li>等待有效数据</li>`;
+        const conclusion = result.completeUncertainty
+          ? `按 A 类、B 类不确定度合成并进行偏导传播，最终表面张力系数为
+              <strong>\\(\\bar{\\gamma} = (${gammaVal} \\pm ${expandedVal})\\ \\text{N/m}\\)</strong>，
+              置信水平按 \\(k_p = ${formatNumber(params.coverageFactor, 3)}\\) 处理。`
+          : hasGamma
+            ? `计算得到 <strong>\\(\\gamma = ${gammaVal}\\ \\text{N/m}\\)</strong>。${uncertaintyNote(result)}`
+            : "等待有效数据。";
+        $("reportContent").innerHTML = `
+          <article class="report-block">
+            <h3>实验常数</h3>
+            <table class="mini-table">
+              <tbody>
+                <tr><td>\\(\\rho\\)</td><td>${formatNumber(params.rho, 2)} kg/m³</td></tr>
+                <tr><td>\\(g\\)</td><td>${formatNumber(params.gravity, 2)} m/s²</td></tr>
+                <tr><td>\\(K\\)</td><td>${formatNumber(params.instrumentK, 2)} mV/N</td></tr>
+                <tr><td>\\(L\\)</td><td>${formatNumber(params.frameWidth, 6)} m</td></tr>
+                <tr><td>\\(d\\)</td><td>${formatNumber(params.filmThickness, 6)} m</td></tr>
+                <tr><td>\\(k_p\\)</td><td>${result.completeUncertainty ? formatNumber(params.coverageFactor, 3) : "--"}</td></tr>
+              </tbody>
+            </table>
+          </article>
+          <article class="report-block">
+            <h3>平均读数</h3>
+            <ul>
+              <li>\\(\\bar{U}\\) = ${formatVoltage(result.uAverage)}</li>
+              <li>\\(\\bar{h}\\) = ${formatLength(result.hAverage)}</li>
+              <li>\\(n\\) = ${result.validRows.length || "--"}</li>
+            </ul>
+          </article>
+          <article class="report-block">
+            <h3>合成标准不确定度</h3>
+            <ul>
+              <li>\\(u(U)\\) = ${formatUncertainty(result.uU, "mV")}</li>
+              <li>\\(u(h)\\) = ${formatUncertainty(result.uH, "m")}</li>
+              <li>\\(u_\\gamma\\) = ${formatUncertainty(result.standardGammaUncertainty)}</li>
+            </ul>
+          </article>
+          <article class="report-block">
+            <h3>最终结果</h3>
+            <ul>
+              ${finalResultItems}
+            </ul>
+          </article>
+          <article class="report-block wide">
+            <h3>公式与偏导</h3>
+            <ul>
+              <li>\\(${gammaFormulaLatex}\\)</li>
+              <li>\\(\\frac{\\partial\\gamma}{\\partial U} = ${formatNumber(result.partialU, 8)}\\)</li>
+              <li>\\(\\frac{\\partial\\gamma}{\\partial h} = ${formatNumber(result.partialH, 6)}\\)</li>
+            </ul>
+          </article>
+          <article class="report-block wide">
+            <h3>实验结论</h3>
+            <p>${conclusion}</p>
+          </article>
+        `;
+      }
+      function calculateAndRender() {
+        const result = calculate();
+        renderRows(result);
+        updateText(result);
+        renderCalculationSteps(result);
+        renderReport(result);
+        typesetMath();
+      }
+      function syncOptionalFields(key) {
+        const enabled = $("use" + key).checked;
+        const group = $("fields" + key);
+        group.hidden = !enabled;
+        group.querySelectorAll("input").forEach(input => { input.disabled = !enabled; });
+      }
+      const optionalKeys = ["K", "Rho", "G"];
+      function setInputValues(values) {
+        optionalKeys.forEach(key => {
+          $("use" + key).checked = false;
+          syncOptionalFields(key);
+        });
+        paramIds.forEach((id) => {
+          if (values[id] !== undefined) $(id).value = values[id];
+        });
+      }
+      function loadSample() {
+        setInputValues(sampleParams);
+        rows = structuredClone(sampleRows);
+        calculateAndRender();
+      }
+      function resetAll() {
+        loadSample();
+      }
+      // 显隐控制区
+      function enterMainTool() {
+        document.getElementById("quizGate").classList.add("hidden");
+        document.getElementById("mainTool").classList.remove("hidden");
+        window.scrollTo(0, 0);
+      }
+      function bindEvents() {
+        optionalKeys.forEach(key => $("use" + key).addEventListener("change", () => syncOptionalFields(key)));
+        document.getElementById("submitQuizBtn").addEventListener("click", submitQuiz);
+        document.getElementById("enterToolBtn").addEventListener("click", enterMainTool);
+        $("confirmBtn").addEventListener("click", calculateAndRender);
+        $("addRowBtn").addEventListener("click", () => {
+          rows.push({ u: "", h: "" });
+          calculateAndRender();
+        });
+        $("clearRowsBtn").addEventListener("click", () => {
+          rows = structuredClone(blankRows);
+          calculateAndRender();
+        });
+        $("loadSampleBtn").addEventListener("click", loadSample);
+        $("resetBtn").addEventListener("click", resetAll);
+      }
+      function typesetMath() {
+        if (typeof MathJax !== "undefined" && MathJax.startup && MathJax.startup.promise) {
+          MathJax.startup.promise
+            .then(() => {
+              MathJax.typesetClear();
+              return MathJax.typesetPromise();
+            })
+            .catch((err) => console.error("MathJax typeset failed:", err));
+        }
+      }
+      renderQuiz();
+      updateQuizActions();
+
+      setInputValues(sampleParams);
+      bindEvents();
+      calculateAndRender();
+    </script>
+</body>
+</html>
